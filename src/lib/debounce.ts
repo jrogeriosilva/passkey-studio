@@ -1,10 +1,9 @@
-export function debounce<T extends (...args: never[]) => void>(
-  fn: T,
-  ms: number
-): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: never[]) => void>(fn: T, ms: number) {
   let timer: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timer);
+  const cancel = () => clearTimeout(timer);
+  const debounced = (...args: Parameters<T>) => {
+    cancel();
     timer = setTimeout(() => fn(...args), ms);
   };
+  return Object.assign(debounced, { cancel });
 }

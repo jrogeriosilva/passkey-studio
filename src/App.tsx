@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { EcosystemNav } from "@/components/EcosystemNav"
 import { AppHeader } from "@/components/AppHeader"
 import { PayloadInput } from "@/components/PayloadInput"
 import { OutputArea } from "@/components/OutputArea"
@@ -32,6 +33,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-5xl px-4">
+        <div className="pt-6"><EcosystemNav /></div>
         <AppHeader />
         <main className="flex flex-col gap-8">
           <PayloadInput

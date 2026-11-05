@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import lifecycleImg from "@/assets/fido2-webauthn-diagrams-dark/01-webauthn-credential-lifecycle-dark.svg"
 import anatomyImg from "@/assets/fido2-webauthn-diagrams-dark/02-publickeycredential-anatomy-dark.svg"
 import authdataImg from "@/assets/fido2-webauthn-diagrams-dark/03-authenticatordata-byte-layout-dark.svg"
@@ -8,45 +8,40 @@ type LightboxState = { src: string; alt: string } | null
 
 function DiagramImage({ src, alt }: { src: string; alt: string }) {
   const [lightbox, setLightbox] = useState<LightboxState>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
-    if (!lightbox) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(null) }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    if (lightbox) dialogRef.current?.showModal()
+    else dialogRef.current?.close()
   }, [lightbox])
 
   return (
     <>
-      <img
-        src={src}
-        alt={alt}
-        className="w-full rounded-lg cursor-zoom-in transition-opacity hover:opacity-90"
-        onClick={() => setLightbox({ src, alt })}
-      />
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 cursor-zoom-out"
-          onClick={() => setLightbox(null)}
-        >
-          <img
-            src={lightbox.src}
-            alt={lightbox.alt}
-            className="max-w-full max-h-full rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      <button type="button" className="block w-full cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#84b0ff]"
+        onClick={() => setLightbox({ src, alt })} aria-label={`Enlarge diagram: ${alt}`}>
+        <img src={src} alt={alt} className="w-full rounded-lg" loading="lazy" />
+      </button>
+      <dialog ref={dialogRef} aria-label="Enlarged diagram" onCancel={() => setLightbox(null)}
+        onClick={e => { if (e.target === e.currentTarget) setLightbox(null) }}
+        className="diagram-dialog rounded-lg bg-[#141928] p-4 text-foreground backdrop:bg-black/80">
+        <button type="button" onClick={() => setLightbox(null)} className="mb-3 min-h-11 rounded-lg px-4 border border-border">Close diagram</button>
+        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-w-full max-h-[80vh]" />}
+      </dialog>
     </>
   )
 }
 
 export function EducationalContent() {
   return (
-    <article
-      aria-labelledby="learn-heading"
-      className="mt-16 border-t border-border pt-12 pb-16 space-y-10 text-sm leading-relaxed"
-    >
+    <details className="mt-6 border-t border-border pt-6 pb-12">
+      <summary className="cursor-pointer py-3 text-lg font-semibold">Guide to WebAuthn payloads</summary>
+      <article aria-labelledby="learn-heading" className="decoder-guide mt-6 space-y-10 text-sm leading-relaxed">
+      <nav aria-label="Guide contents" className="flex flex-wrap gap-x-5 gap-y-3">
+        <a className="underline" href="#credential-lifecycle">Credential lifecycle</a>
+        <a className="underline" href="#credential-anatomy">Credential anatomy</a>
+        <a className="underline" href="#attestation-object">Attestation object</a>
+        <a className="underline" href="#authenticator-data">Authenticator data</a>
+      </nav>
       <header className="space-y-3">
         <h2 id="learn-heading" className="text-2xl font-semibold">
           Understanding FIDO2 and WebAuthn Payloads
@@ -79,7 +74,7 @@ export function EducationalContent() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">The WebAuthn Credential Lifecycle</h2>
+        <h2 id="credential-lifecycle" className="text-lg font-semibold">The WebAuthn Credential Lifecycle</h2>
         <DiagramImage
           src={lifecycleImg}
           alt="Diagram showing the WebAuthn credential lifecycle: registration with navigator.credentials.create and authentication with navigator.credentials.get"
@@ -114,7 +109,7 @@ export function EducationalContent() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Anatomy of a PublicKeyCredential</h2>
+        <h2 id="credential-anatomy" className="text-lg font-semibold">Anatomy of a PublicKeyCredential</h2>
         <DiagramImage
           src={anatomyImg}
           alt="Diagram showing the structure of a PublicKeyCredential object with fields: id, rawId, response.attestationObject, response.authenticatorData, response.clientDataJSON, response.signature, and response.userHandle"
@@ -142,7 +137,7 @@ export function EducationalContent() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Decoding the attestationObject</h2>
+        <h2 id="attestation-object" className="text-lg font-semibold">Decoding the attestationObject</h2>
         <DiagramImage
           src={attestationImg}
           alt="Diagram showing the CBOR structure of attestationObject with keys: fmt, authData, and attStmt"
@@ -170,7 +165,7 @@ export function EducationalContent() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Reading authenticatorData</h2>
+        <h2 id="authenticator-data" className="text-lg font-semibold">Reading authenticatorData</h2>
         <DiagramImage
           src={authdataImg}
           alt="Diagram showing the byte layout of authenticatorData: rpIdHash (32 bytes), flags (1 byte), signCount (4 bytes), attestedCredentialData, and extensions"
@@ -311,6 +306,7 @@ export function EducationalContent() {
           ))}
         </dl>
       </section>
-    </article>
+      </article>
+    </details>
   )
 }

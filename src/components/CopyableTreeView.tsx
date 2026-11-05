@@ -3,19 +3,25 @@ import { Copy, Check, ChevronDown, ChevronRight } from "lucide-react"
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
 
-  const handleCopy = (e: React.MouseEvent) => {
+  const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopyError(false)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch { setCopyError(true) }
   }
 
   return (
+    <span className="inline-flex shrink-0 items-center">
     <button
       onClick={handleCopy}
       title="Copy value"
-      className="ml-1.5 inline-flex items-center gap-0.5 px-1 py-0.5 rounded opacity-0 group-hover/val:opacity-100 text-white bg-white/10 hover:bg-white/20 transition-opacity focus:opacity-100 outline-none"
+      aria-label={copied ? 'Value copied' : 'Copy value'}
+      className="tree-copy ml-1.5 inline-flex items-center gap-0.5 px-1 py-0.5 rounded opacity-0 group-hover/val:opacity-100 text-white bg-white/10 hover:bg-white/20 transition-opacity focus:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#84b0ff]"
     >
       {copied ? (
         <Check className="size-3.5 text-green-400" />
@@ -23,6 +29,8 @@ function CopyButton({ text }: { text: string }) {
         <Copy className="size-3.5" />
       )}
     </button>
+    {copyError && <span role="alert" className="text-xs text-destructive">Copy failed; select the value and copy manually.</span>}
+    </span>
   )
 }
 
@@ -30,7 +38,7 @@ function LeafValue({ value }: { value: string | number | boolean | null }) {
   if (value === null) {
     return (
       <span className="group/val inline-flex items-center">
-        <span className="text-[#6b737c]">null</span>
+        <span className="text-[#a3adbf]">null</span>
         <CopyButton text="null" />
       </span>
     )
@@ -52,8 +60,8 @@ function LeafValue({ value }: { value: string | number | boolean | null }) {
     )
   }
   return (
-    <span className="group/val inline-flex items-center max-w-full">
-      <span className="text-[#98c379] break-all">"{value}"</span>
+    <span className="group/val inline-flex items-center min-w-0 max-w-full">
+      <span className="text-[#98c379] min-w-0 break-all">"{value}"</span>
       <CopyButton text={value} />
     </span>
   )
@@ -61,12 +69,11 @@ function LeafValue({ value }: { value: string | number | boolean | null }) {
 
 interface TreeNodeProps {
   value: unknown
-  depth: number
+  path: string
 }
 
-function TreeNode({ value, depth }: TreeNodeProps) {
+function TreeNode({ value, path }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(true)
-  const indent = depth * 14
 
   if (
     value === null ||
@@ -79,13 +86,15 @@ function TreeNode({ value, depth }: TreeNodeProps) {
 
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return <span className="text-[#6b737c]">[]</span>
+      return <span className="text-[#a3adbf]">[]</span>
     }
     return (
       <span>
         <button
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} ${path}`}
+          aria-expanded={expanded}
           onClick={() => setExpanded((v) => !v)}
-          className="inline-flex items-center gap-0.5 text-[#6b737c] hover:text-foreground transition-colors"
+          className="tree-toggle inline-flex items-center gap-0.5 text-[#a3adbf] hover:text-foreground transition-colors"
         >
           {expanded ? (
             <ChevronDown className="size-3" />
@@ -95,11 +104,11 @@ function TreeNode({ value, depth }: TreeNodeProps) {
           <span className="text-xs">[{value.length}]</span>
         </button>
         {expanded && (
-          <div style={{ paddingLeft: indent + 14 }}>
+          <div className="tree-children">
             {value.map((item, i) => (
-              <div key={i} className="py-px">
-                <span className="text-[#6b737c]">{i}: </span>
-                <TreeNode value={item} depth={depth + 1} />
+              <div key={i} className="py-px min-w-0 break-words">
+                <span className="text-[#a3adbf]">{i}: </span>
+                <TreeNode value={item} path={`${path}[${i}]`} />
               </div>
             ))}
           </div>
@@ -111,13 +120,15 @@ function TreeNode({ value, depth }: TreeNodeProps) {
   if (typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
     if (entries.length === 0) {
-      return <span className="text-[#6b737c]">{"{}"}</span>
+      return <span className="text-[#a3adbf]">{"{}"}</span>
     }
     return (
       <span>
         <button
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} ${path}`}
+          aria-expanded={expanded}
           onClick={() => setExpanded((v) => !v)}
-          className="inline-flex items-center gap-0.5 text-[#6b737c] hover:text-foreground transition-colors"
+          className="tree-toggle inline-flex items-center gap-0.5 text-[#a3adbf] hover:text-foreground transition-colors"
         >
           {expanded ? (
             <ChevronDown className="size-3" />
@@ -126,12 +137,12 @@ function TreeNode({ value, depth }: TreeNodeProps) {
           )}
         </button>
         {expanded && (
-          <div style={{ paddingLeft: indent + 14 }}>
+          <div className="tree-children">
             {entries.map(([key, val]) => (
-              <div key={key} className="py-px">
+              <div key={key} className="py-px min-w-0 break-words">
                 <span className="text-[#e06c75] font-medium">{key}</span>
-                <span className="text-[#6b737c]">: </span>
-                <TreeNode value={val} depth={depth + 1} />
+                <span className="text-[#a3adbf]">: </span>
+                <TreeNode value={val} path={`${path}.${key}`} />
               </div>
             ))}
           </div>
@@ -140,7 +151,7 @@ function TreeNode({ value, depth }: TreeNodeProps) {
     )
   }
 
-  return <span className="text-[#6b737c]">{String(value)}</span>
+  return <span className="text-[#a3adbf]">{String(value)}</span>
 }
 
 export interface CopyableTreeViewProps {
@@ -155,10 +166,10 @@ export function CopyableTreeView({ tree }: CopyableTreeViewProps) {
     >
       <div>
         {Object.entries(tree).map(([key, value]) => (
-          <div key={key} className="py-px">
+          <div key={key} className="py-px min-w-0 break-words">
             <span className="text-[#e06c75] font-medium">{key}</span>
-            <span className="text-[#6b737c]">: </span>
-            <TreeNode value={value} depth={0} />
+            <span className="text-[#a3adbf]">: </span>
+            <TreeNode value={value} path={key} />
           </div>
         ))}
       </div>

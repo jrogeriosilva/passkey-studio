@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useCallback } from "react"
+import { useRef, useState, useMemo, useCallback, useEffect } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { FormatBadge } from "@/components/FormatBadge"
@@ -43,7 +43,10 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
     [onFormatResult]
   )
 
+  useEffect(() => () => debouncedDetect.cancel(), [debouncedDetect])
+
   const detectImmediate = useCallback((value: string) => {
+    debouncedDetect.cancel()
     if (!value.trim()) {
       setResult(null)
       onFormatResult(null)
@@ -52,7 +55,7 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
     const r = detectAndNormalize(value)
     setResult(r)
     onFormatResult(r)
-  }, [onFormatResult])
+  }, [onFormatResult, debouncedDetect])
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -74,6 +77,7 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
   }
 
   const handleClear = () => {
+    debouncedDetect.cancel()
     setInput("")
     onRawInput?.("")
     setResult(null)
@@ -94,7 +98,14 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
 
   return (
     <div className="flex flex-col gap-2">
+      <label htmlFor="payload-input" className="text-sm font-medium">WebAuthn payload</label>
+      <p id="payload-help" className="text-sm text-muted-foreground">
+        Paste a credential JSON, base64url or hex value, or choose a sample to start. Decoding happens locally in your browser.
+      </p>
       <Textarea
+        id="payload-input"
+        aria-describedby="payload-help"
+        aria-invalid={!!errorMessage}
         ref={textareaRef}
         value={input}
         onChange={handleChange}
