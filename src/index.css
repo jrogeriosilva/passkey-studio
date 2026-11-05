@@ -120,9 +120,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(60rem 28rem at 50% -10rem, color-mix(in oklab, var(--primary) 16%, transparent), transparent 70%);
-    background-repeat: no-repeat;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 35%, transparent);
@@ -132,12 +129,6 @@
   }
 }
 
-@utility text-gradient {
-  background-image: none;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: var(--foreground);
-}
 
 /* Decoded tree ------------------------------------------------------------ */
 .decode-tree {
