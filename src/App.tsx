@@ -5,7 +5,6 @@ import { AppFooter } from "@/components/AppFooter"
 import { HeroIntro } from "@/components/HeroIntro"
 import { PayloadInput } from "@/components/PayloadInput"
 import { OutputArea } from "@/components/OutputArea"
-import { DemoCallToAction } from "@/components/DemoCallToAction"
 import { EducationalContent } from "@/components/EducationalContent"
 import { decodeFullCredential } from "@/lib/decode-orchestrator"
 import { autoDetectAndDecode } from "@/lib/payload-type-detection"
@@ -48,9 +47,6 @@ function App() {
             decodeResult={decodeResult}
             detectedType={detectedType}
           />
-        </div>
-        <div className="mt-10">
-          <DemoCallToAction />
         </div>
         <EducationalContent />
       </main>
