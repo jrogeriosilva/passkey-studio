@@ -1,17 +1,27 @@
-import { useState } from "react"
-import { Copy, Check } from "lucide-react"
+import { useState, type ReactNode } from "react"
+import { Braces, Check, Copy, ScanSearch, TriangleAlert } from "lucide-react"
 import type { DecodeResult, PayloadType } from "@/lib/types"
 import { preprocessForTree } from "@/lib/tree-preprocess"
 import { DecodeTreeView } from "@/components/DecodeTreeView"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { payloadTypeLabel } from "@/lib/payload-type-detection"
+import { cn } from "@/lib/utils"
 
 type DetectedType = PayloadType | "publicKeyCredential"
 
 interface OutputAreaProps {
   decodeResult: DecodeResult | null
   detectedType: DetectedType | null
+}
+
+/** Tinted badge per payload type so the detected kind is recognisable at a glance. */
+const TYPE_BADGE_CLASS: Record<DetectedType, string> = {
+  registration: "border-primary/30 bg-primary/10 text-primary",
+  authentication: "border-tree-key/30 bg-tree-key/10 text-tree-key",
+  clientDataJSON: "border-warning/30 bg-warning/10 text-warning",
+  publicKeyCredential: "border-success/30 bg-success/10 text-success",
+  "raw-cbor": "border-border bg-muted text-muted-foreground",
 }
 
 function CopyAllButton({ tree }: { tree: Record<string, unknown> }) {
@@ -40,45 +50,94 @@ function CopyAllButton({ tree }: { tree: Record<string, unknown> }) {
     </div>
   )
 }
+interface OutputShellProps {
+  children: ReactNode
+  badge?: ReactNode
+  actions?: ReactNode
+  tone?: "default" | "error"
+}
+
+function OutputShell({ children, badge, actions, tone = "default" }: OutputShellProps) {
+  return (
+    <section
+      aria-labelledby="output-heading"
+      className={cn(
+        "overflow-hidden rounded-xl border bg-card shadow-sm shadow-black/20",
+        tone === "error" ? "border-destructive/40" : "border-border"
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-3 py-2 sm:px-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Braces className="size-4 text-muted-foreground" aria-hidden="true" />
+          <h2 id="output-heading" className="text-sm font-medium">
+            Decoded output
+          </h2>
+          {badge}
+        </div>
+        {actions}
+      </div>
+      {children}
+    </section>
+  )
+}
 
 export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
   if (!decodeResult) {
     return (
-      <div className="min-h-[200px] rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
-        Decoded output will appear here. Choose Load sample to explore a registration or authentication response.
-      </div>
+      <OutputShell>
+        <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+          <span className="flex size-12 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-muted-foreground">
+            <ScanSearch className="size-5" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-sm font-medium">Nothing decoded yet</p>
+            <p className="mt-1 max-w-sm text-sm text-pretty text-muted-foreground">
+              Paste a payload above or load a sample. Decoded output will appear here as an
+              interactive tree.
+            </p>
+          </div>
+        </div>
+      </OutputShell>
     )
   }
 
   if (!decodeResult.ok) {
     return (
-      <div className="min-h-[200px] rounded-md border border-destructive/50 bg-card p-4">
-        <p role="alert" className="text-sm font-medium text-destructive">{decodeResult.error}</p>
-        {decodeResult.suggestion && (
-          <p className="mt-1 text-sm text-muted-foreground">{decodeResult.suggestion}</p>
-        )}
-      </div>
+      <OutputShell tone="error">
+        <div className="flex gap-3 px-4 py-5">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+            <TriangleAlert className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p role="alert" className="text-sm font-medium text-destructive">{decodeResult.error}</p>
+            {decodeResult.suggestion && (
+              <p className="mt-1 text-sm text-pretty text-muted-foreground">{decodeResult.suggestion}</p>
+            )}
+          </div>
+        </div>
+      </OutputShell>
     )
   }
 
   const { tree } = preprocessForTree(decodeResult)
 
   return (
-    <div className="min-h-[200px] rounded-md border border-border bg-card p-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {detectedType && (
-            <>
-              <span className="text-xs text-muted-foreground">Detected</span>
-              <Badge variant="secondary" className="font-mono text-xs whitespace-normal break-all">
-                {payloadTypeLabel(detectedType)}
-              </Badge>
-            </>
-          )}
-        </div>
-        <CopyAllButton tree={tree} />
+    <OutputShell
+      badge={
+        detectedType && (
+          <Badge
+            variant="outline"
+            className={cn("font-mono text-[11px] whitespace-normal break-all", TYPE_BADGE_CLASS[detectedType])}
+          >
+            {payloadTypeLabel(detectedType)}
+          </Badge>
+        )
+      }
+      actions={<CopyAllButton tree={tree} />}
+    >
+      <div className="overflow-x-auto px-3 py-3 sm:px-4">
+        <DecodeTreeView tree={tree} />
       </div>
-      <DecodeTreeView tree={tree} />
-    </div>
+    </OutputShell>
   )
 }

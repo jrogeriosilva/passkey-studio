@@ -1,12 +1,70 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, type ReactNode } from "react"
+import { BookOpen, Check, ChevronDown, ShieldCheck, X, ZoomIn } from "lucide-react"
 import lifecycleImg from "@/assets/fido2-webauthn-diagrams-dark/01-webauthn-credential-lifecycle-dark.svg"
 import anatomyImg from "@/assets/fido2-webauthn-diagrams-dark/02-publickeycredential-anatomy-dark.svg"
 import authdataImg from "@/assets/fido2-webauthn-diagrams-dark/03-authenticatordata-byte-layout-dark.svg"
 import attestationImg from "@/assets/fido2-webauthn-diagrams-dark/04-attestationobject-structure-dark.svg"
 
+/* ---------------------------------------------------------------------------
+ * Small presentational helpers shared by every section below.
+ * ------------------------------------------------------------------------- */
+
+function Code({ children }: { children: ReactNode }) {
+  return (
+    <code className="rounded-md border border-border/60 bg-muted/60 px-1.5 py-0.5 font-mono text-[0.82em] text-foreground/90">
+      {children}
+    </code>
+  )
+}
+
+function Strong({ children }: { children: ReactNode }) {
+  return <strong className="font-medium text-foreground">{children}</strong>
+}
+
+function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section aria-labelledby={id} className="scroll-mt-20 space-y-4">
+      <h3 id={id} className="flex items-center gap-3 text-xl font-semibold tracking-tight">
+        <span aria-hidden="true" className="h-5 w-1 shrink-0 rounded-full bg-primary" />
+        {title}
+      </h3>
+      {children}
+    </section>
+  )
+}
+
+function Prose({ children }: { children: ReactNode }) {
+  return <p className="max-w-3xl text-pretty text-muted-foreground">{children}</p>
+}
+
+function Bullets({ items, gap = "space-y-2" }: { items: ReactNode[]; gap?: string }) {
+  return (
+    <ul className={`max-w-3xl list-disc pl-5 text-muted-foreground marker:text-primary/70 ${gap}`}>
+      {items.map((item, i) => (
+        <li key={i} className="pl-1">
+          {item}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function DefinitionRows({ items }: { items: [string, string][] }) {
+  return (
+    <dl className="max-w-3xl divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-card/40">
+      {items.map(([term, def]) => (
+        <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-4">
+          <dt className="font-mono text-xs font-medium text-tree-key">{term}</dt>
+          <dd className="text-muted-foreground">{def}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 type LightboxState = { src: string; alt: string } | null
 
-function DiagramImage({ src, alt }: { src: string; alt: string }) {
+function DiagramFigure({ src, alt, caption }: { src: string; alt: string; caption: string }) {
   const [lightbox, setLightbox] = useState<LightboxState>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -16,37 +74,84 @@ function DiagramImage({ src, alt }: { src: string; alt: string }) {
   }, [lightbox])
 
   return (
-    <>
-      <button type="button" className="block w-full cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#84b0ff]"
-        onClick={() => setLightbox({ src, alt })} aria-label={`Enlarge diagram: ${alt}`}>
+    <figure className="max-w-3xl overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm shadow-black/20">
+      <button
+        type="button"
+        onClick={() => setLightbox({ src, alt })}
+        aria-label={`Enlarge diagram: ${caption}`}
+        className="group/figure relative block w-full cursor-zoom-in p-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
+      >
         <img src={src} alt={alt} className="w-full rounded-lg" loading="lazy" />
+        <span className="pointer-events-none absolute top-4 right-4 inline-flex items-center gap-1 rounded-md border border-border bg-background/80 px-2 py-1 text-[11px] text-muted-foreground opacity-0 backdrop-blur transition-opacity group-hover/figure:opacity-100 group-focus-visible/figure:opacity-100">
+          <ZoomIn className="size-3" aria-hidden="true" />
+          Enlarge
+        </span>
       </button>
-      <dialog ref={dialogRef} aria-label="Enlarged diagram" onCancel={() => setLightbox(null)}
+      <figcaption className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
+        {caption}
+      </figcaption>
+      <dialog ref={dialogRef} aria-label={caption} onCancel={() => setLightbox(null)}
         onClick={e => { if (e.target === e.currentTarget) setLightbox(null) }}
-        className="diagram-dialog rounded-lg bg-[#141928] p-4 text-foreground backdrop:bg-black/80">
-        <button type="button" onClick={() => setLightbox(null)} className="mb-3 min-h-11 rounded-lg px-4 border border-border">Close diagram</button>
-        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-w-full max-h-[80vh]" />}
+        className="diagram-dialog rounded-xl border border-border bg-card p-4 text-foreground backdrop:bg-black/80">
+        <button type="button" aria-label="Close" onClick={() => setLightbox(null)} className="mb-3 min-h-11 px-3"><X className="size-4" /></button>
+        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-h-[80vh] max-w-full rounded-lg" />}
       </dialog>
-    </>
+    </figure>
   )
 }
 
+function ScenarioCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <li className="rounded-xl border border-border bg-card/40 p-4">
+      <h4 className="font-medium text-foreground">{title}</h4>
+      <p className="mt-1.5 text-pretty text-muted-foreground">{children}</p>
+    </li>
+  )
+}
+
+function Faq({ items }: { items: [string, string][] }) {
+  return (
+    <div className="max-w-3xl space-y-2">
+      {items.map(([q, a]) => (
+        <details
+          key={q}
+          className="group rounded-xl border border-border bg-card/40 open:bg-card/70 transition-colors"
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 font-medium text-foreground outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset rounded-xl">
+            {q}
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <p className="px-4 pb-4 text-pretty text-muted-foreground">{a}</p>
+        </details>
+      ))}
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------------------------
+ * Content
+ * ------------------------------------------------------------------------- */
+
 export function EducationalContent() {
   return (
-    <details className="mt-6 border-t border-border pt-6 pb-12">
+    <details className="mt-10 border-t border-border py-6">
       <summary className="cursor-pointer py-3 text-lg font-semibold">Guide to WebAuthn payloads</summary>
-      <article aria-labelledby="learn-heading" className="decoder-guide mt-6 space-y-10 text-sm leading-relaxed">
-      <nav aria-label="Guide contents" className="flex flex-wrap gap-x-5 gap-y-3">
-        <a className="underline" href="#credential-lifecycle">Credential lifecycle</a>
-        <a className="underline" href="#credential-anatomy">Credential anatomy</a>
-        <a className="underline" href="#attestation-object">Attestation object</a>
-        <a className="underline" href="#authenticator-data">Authenticator data</a>
-      </nav>
-      <header className="space-y-3">
-        <h2 id="learn-heading" className="text-2xl font-semibold">
+    <article
+      aria-labelledby="learn-heading"
+      className="mt-16 space-y-12 border-t border-border/60 pt-12 pb-16 text-sm leading-relaxed"
+    >
+      <header className="space-y-4">
+        <p className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <BookOpen className="size-3.5 text-primary" aria-hidden="true" />
+          Learn
+        </p>
+        <h2 id="learn-heading" className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
           Understanding FIDO2 and WebAuthn Payloads
         </h2>
-        <p className="text-muted-foreground max-w-2xl">
+        <p className="max-w-2xl text-base text-pretty text-muted-foreground">
           WebAuthn Decoder is a free, browser-based tool for decoding and inspecting WebAuthn protocol
           data. Whether you are integrating passkeys into a web application, debugging a failed
           registration, or auditing an authenticator's attestation statement, this tool decodes
@@ -55,221 +160,243 @@ export function EducationalContent() {
         </p>
       </header>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">What Is FIDO2?</h2>
-        <p className="text-muted-foreground">
+      <Section id="what-is-fido2" title="What Is FIDO2?">
+        <Prose>
           FIDO2 is the umbrella name for two complementary standards published by the FIDO Alliance
-          and the World Wide Web Consortium (W3C): the <strong className="text-foreground">Web Authentication API (WebAuthn)</strong> and
-          the <strong className="text-foreground">Client to Authenticator Protocol 2 (CTAP2)</strong>. Together they enable
+          and the World Wide Web Consortium (W3C): the <Strong>Web Authentication API (WebAuthn)</Strong> and
+          the <Strong>Client to Authenticator Protocol 2 (CTAP2)</Strong>. Together they enable
           phishing-resistant, passwordless authentication — sometimes called passkeys — across
           browsers, operating systems, and hardware security keys.
-        </p>
-        <p className="text-muted-foreground">
+        </Prose>
+        <Prose>
           WebAuthn defines the JavaScript API that relying parties (websites) call, and the
           cryptographic data structures their servers must verify. CTAP2 defines how the browser
           communicates with an external authenticator such as a YubiKey, a phone, or a platform
           authenticator built into a laptop's TPM. WebAuthn Decoder focuses on the WebAuthn data
           structures that flow between the browser and the relying party server.
-        </p>
-      </section>
+        </Prose>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 id="credential-lifecycle" className="text-lg font-semibold">The WebAuthn Credential Lifecycle</h2>
-        <DiagramImage
+      <Section id="lifecycle" title="The WebAuthn Credential Lifecycle">
+        <DiagramFigure
           src={lifecycleImg}
           alt="Diagram showing the WebAuthn credential lifecycle: registration with navigator.credentials.create and authentication with navigator.credentials.get"
+          caption="Registration creates a credential; authentication proves possession of it."
         />
-        <p className="text-muted-foreground">
-          WebAuthn has two distinct ceremony types, each producing a different payload shape:
-        </p>
-        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-          <li>
-            <strong className="text-foreground">Registration</strong> — the browser calls{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">navigator.credentials.create()</code> with
-            a challenge from the server. The authenticator generates a new asymmetric key pair, signs
-            the challenge, and returns a{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">PublicKeyCredential</code> whose{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">response</code> includes an{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">attestationObject</code> and a{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">clientDataJSON</code>. The server
-            stores the public key for future authentications.
-          </li>
-          <li>
-            <strong className="text-foreground">Authentication</strong> — the browser calls{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">navigator.credentials.get()</code> with
-            a new server challenge. The authenticator signs the challenge with the private key it
-            stored during registration and returns a{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">PublicKeyCredential</code> whose{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">response</code> includes an{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">authenticatorData</code>, a{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">signature</code>, and a{" "}
-            <code className="font-mono text-xs bg-muted px-1 rounded">clientDataJSON</code>.
-          </li>
-        </ul>
-      </section>
+        <Prose>WebAuthn has two distinct ceremony types, each producing a different payload shape:</Prose>
+        <Bullets
+          items={[
+            <>
+              <Strong>Registration</Strong> — the browser calls <Code>navigator.credentials.create()</Code> with
+              a challenge from the server. The authenticator generates a new asymmetric key pair, signs
+              the challenge, and returns a <Code>PublicKeyCredential</Code> whose <Code>response</Code> includes
+              an <Code>attestationObject</Code> and a <Code>clientDataJSON</Code>. The server stores the public
+              key for future authentications.
+            </>,
+            <>
+              <Strong>Authentication</Strong> — the browser calls <Code>navigator.credentials.get()</Code> with
+              a new server challenge. The authenticator signs the challenge with the private key it
+              stored during registration and returns a <Code>PublicKeyCredential</Code> whose{" "}
+              <Code>response</Code> includes an <Code>authenticatorData</Code>, a <Code>signature</Code>, and a{" "}
+              <Code>clientDataJSON</Code>.
+            </>,
+          ]}
+        />
+      </Section>
 
-      <section className="space-y-3">
-        <h2 id="credential-anatomy" className="text-lg font-semibold">Anatomy of a PublicKeyCredential</h2>
-        <DiagramImage
+      <Section id="anatomy" title="Anatomy of a PublicKeyCredential">
+        <DiagramFigure
           src={anatomyImg}
           alt="Diagram showing the structure of a PublicKeyCredential object with fields: id, rawId, response.attestationObject, response.authenticatorData, response.clientDataJSON, response.signature, and response.userHandle"
+          caption="Fields of the PublicKeyCredential returned by both ceremonies."
         />
-        <p className="text-muted-foreground">
-          The object returned by both WebAuthn ceremonies is a{" "}
-          <code className="font-mono text-xs bg-muted px-1 rounded">PublicKeyCredential</code>. Its most
+        <Prose>
+          The object returned by both WebAuthn ceremonies is a <Code>PublicKeyCredential</Code>. Its most
           important fields are:
-        </p>
-        <dl className="space-y-3 text-muted-foreground">
-          {[
+        </Prose>
+        <DefinitionRows
+          items={[
             ["id / rawId", "A base64url-encoded (id) or raw ArrayBuffer (rawId) unique identifier for this credential."],
             ["response.attestationObject", "Registration only. A CBOR-encoded map containing fmt (attestation format), authData (authenticator data bytes), and attStmt (attestation statement). This is what you decode here to inspect a new credential."],
             ["response.authenticatorData", "Authentication only (also nested inside attestationObject during registration). Raw binary data — not CBOR — containing the RP ID hash, flags, sign count, and optional attested credential data."],
             ["response.clientDataJSON", "Base64url-encoded UTF-8 JSON bound to both ceremonies. Contains type, challenge, origin, and optionally crossOrigin and tokenBinding."],
             ["response.signature", "Authentication only. The authenticator's signature over authenticatorData ‖ SHA-256(clientDataJSON), using the private key registered earlier."],
             ["response.userHandle", "Authentication only. The opaque user ID set during registration, returned by the authenticator to help the server find the right account."],
-          ].map(([term, def]) => (
-            <div key={term}>
-              <dt className="font-mono text-xs text-foreground font-medium">{term}</dt>
-              <dd className="mt-0.5 pl-3">{def}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+          ]}
+        />
+      </Section>
 
-      <section className="space-y-3">
-        <h2 id="attestation-object" className="text-lg font-semibold">Decoding the attestationObject</h2>
-        <DiagramImage
+      <Section id="attestation-object" title="Decoding the attestationObject">
+        <DiagramFigure
           src={attestationImg}
           alt="Diagram showing the CBOR structure of attestationObject with keys: fmt, authData, and attStmt"
+          caption="attestationObject is a CBOR map with three keys."
         />
-        <p className="text-muted-foreground">
-          The <code className="font-mono text-xs bg-muted px-1 rounded">attestationObject</code> is a
-          CBOR-encoded map with three top-level keys:
-        </p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li><code className="font-mono text-xs bg-muted px-1 rounded">fmt</code> — a string identifying the attestation statement format.</li>
-          <li><code className="font-mono text-xs bg-muted px-1 rounded">authData</code> — the raw authenticator data bytes (described in the next section).</li>
-          <li><code className="font-mono text-xs bg-muted px-1 rounded">attStmt</code> — a CBOR map whose structure depends on <code className="font-mono text-xs bg-muted px-1 rounded">fmt</code>.</li>
-        </ul>
-        <p className="text-muted-foreground">
-          Common <code className="font-mono text-xs bg-muted px-1 rounded">fmt</code> values and what they mean:
-        </p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li><strong className="text-foreground">none</strong> — no attestation. The authenticator does not prove its model. Widely used for platform authenticators (Face ID, Windows Hello, Android biometrics) when the relying party does not need to verify device provenance.</li>
-          <li><strong className="text-foreground">packed</strong> — a compact, general-purpose format defined by the WebAuthn spec. Used by most security keys and many platform authenticators.</li>
-          <li><strong className="text-foreground">fido-u2f</strong> — legacy FIDO U2F compatibility format. Seen on older YubiKeys and keys manufactured before the FIDO2 standard.</li>
-          <li><strong className="text-foreground">tpm</strong> — Trusted Platform Module attestation. Used by Windows Hello for Business when a TPM is present.</li>
-          <li><strong className="text-foreground">android-key</strong> — Android Keystore attestation. Used on Android devices with hardware-backed key storage.</li>
-          <li><strong className="text-foreground">apple</strong> — Apple Anonymous Attestation. Used by Touch ID, Face ID, and the iPhone Secure Enclave since iOS 14 / macOS 11.</li>
-        </ul>
-      </section>
+        <Prose>
+          The <Code>attestationObject</Code> is a CBOR-encoded map with three top-level keys:
+        </Prose>
+        <Bullets
+          gap="space-y-1.5"
+          items={[
+            <><Code>fmt</Code> — a string identifying the attestation statement format.</>,
+            <><Code>authData</Code> — the raw authenticator data bytes (described in the next section).</>,
+            <><Code>attStmt</Code> — a CBOR map whose structure depends on <Code>fmt</Code>.</>,
+          ]}
+        />
+        <Prose>Common <Code>fmt</Code> values and what they mean:</Prose>
+        <Bullets
+          gap="space-y-1.5"
+          items={[
+            <><Strong>none</Strong> — no attestation. The authenticator does not prove its model. Widely used for platform authenticators (Face ID, Windows Hello, Android biometrics) when the relying party does not need to verify device provenance.</>,
+            <><Strong>packed</Strong> — a compact, general-purpose format defined by the WebAuthn spec. Used by most security keys and many platform authenticators.</>,
+            <><Strong>fido-u2f</Strong> — legacy FIDO U2F compatibility format. Seen on older YubiKeys and keys manufactured before the FIDO2 standard.</>,
+            <><Strong>tpm</Strong> — Trusted Platform Module attestation. Used by Windows Hello for Business when a TPM is present.</>,
+            <><Strong>android-key</Strong> — Android Keystore attestation. Used on Android devices with hardware-backed key storage.</>,
+            <><Strong>apple</Strong> — Apple Anonymous Attestation. Used by Touch ID, Face ID, and the iPhone Secure Enclave since iOS 14 / macOS 11.</>,
+          ]}
+        />
+      </Section>
 
-      <section className="space-y-3">
-        <h2 id="authenticator-data" className="text-lg font-semibold">Reading authenticatorData</h2>
-        <DiagramImage
+      <Section id="authenticator-data" title="Reading authenticatorData">
+        <DiagramFigure
           src={authdataImg}
           alt="Diagram showing the byte layout of authenticatorData: rpIdHash (32 bytes), flags (1 byte), signCount (4 bytes), attestedCredentialData, and extensions"
+          caption="Byte layout of authenticatorData. Only the COSE key inside it is CBOR."
         />
-        <p className="text-muted-foreground">
-          Unlike most other fields in WebAuthn, <code className="font-mono text-xs bg-muted px-1 rounded">authenticatorData</code> is
-          not CBOR. It is a manually packed binary structure — you cannot run a CBOR decoder over it
-          directly. Its layout is:
-        </p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li><strong className="text-foreground">Bytes 0–31</strong> — rpIdHash: the SHA-256 hash of the Relying Party ID (usually the effective domain, e.g. <code className="font-mono text-xs bg-muted px-1 rounded">example.com</code>). The server must verify this matches its own RP ID.</li>
-          <li><strong className="text-foreground">Byte 32</strong> — flags: a bitmask encoding user presence (UP, bit 0), user verification (UV, bit 2), backup eligibility (BE, bit 3), backup state (BS, bit 4), attested credential data included (AT, bit 6), and extension data included (ED, bit 7).</li>
-          <li><strong className="text-foreground">Bytes 33–36</strong> — signCount: a 32-bit big-endian unsigned integer incremented by the authenticator on every authentication. A count lower than the server's stored value indicates a possible cloned authenticator.</li>
-          <li><strong className="text-foreground">Bytes 37+</strong> — attestedCredentialData (only if AT flag set): a variable-length structure containing the AAGUID (16 bytes), credential ID length (2 bytes BE), credential ID, and a CBOR-encoded COSE public key.</li>
-          <li><strong className="text-foreground">Trailing bytes</strong> — extensions CBOR map (only if ED flag set).</li>
-        </ul>
-        <p className="text-muted-foreground">
+        <Prose>
+          Unlike most other fields in WebAuthn, <Code>authenticatorData</Code> is not CBOR. It is a
+          manually packed binary structure — you cannot run a CBOR decoder over it directly. Its
+          layout is:
+        </Prose>
+        <Bullets
+          gap="space-y-1.5"
+          items={[
+            <><Strong>Bytes 0–31</Strong> — rpIdHash: the SHA-256 hash of the Relying Party ID (usually the effective domain, e.g. <Code>example.com</Code>). The server must verify this matches its own RP ID.</>,
+            <><Strong>Byte 32</Strong> — flags: a bitmask encoding user presence (UP, bit 0), user verification (UV, bit 2), backup eligibility (BE, bit 3), backup state (BS, bit 4), attested credential data included (AT, bit 6), and extension data included (ED, bit 7).</>,
+            <><Strong>Bytes 33–36</Strong> — signCount: a 32-bit big-endian unsigned integer incremented by the authenticator on every authentication. A count lower than the server's stored value indicates a possible cloned authenticator.</>,
+            <><Strong>Bytes 37+</Strong> — attestedCredentialData (only if AT flag set): a variable-length structure containing the AAGUID (16 bytes), credential ID length (2 bytes BE), credential ID, and a CBOR-encoded COSE public key.</>,
+            <><Strong>Trailing bytes</Strong> — extensions CBOR map (only if ED flag set).</>,
+          ]}
+        />
+        <Prose>
           WebAuthn Decoder parses this structure byte-by-byte, correctly separating the binary sections
           from the embedded CBOR so each field is labeled and highlighted individually in the tree.
-        </p>
-      </section>
+        </Prose>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">COSE Keys Explained</h2>
-        <p className="text-muted-foreground">
-          WebAuthn represents public keys in the{" "}
-          <strong className="text-foreground">CBOR Object Signing and Encryption (COSE)</strong> format
+      <Section id="cose-keys" title="COSE Keys Explained">
+        <Prose>
+          WebAuthn represents public keys in the <Strong>CBOR Object Signing and Encryption (COSE)</Strong> format
           defined in RFC 8152. A COSE_Key is a CBOR map where integer labels carry meaning defined
           by the COSE registry. The most important labels are:
-        </p>
-        <dl className="space-y-3 text-muted-foreground">
-          {[
+        </Prose>
+        <DefinitionRows
+          items={[
             ["1 (kty)", "Key type. 1 = OKP (EdDSA), 2 = EC2 (elliptic curve), 3 = RSA."],
             ["3 (alg)", "Algorithm. -7 = ES256 (EC2 + P-256 + SHA-256), -8 = EdDSA (OKP + Ed25519), -257 = RS256 (RSA + PKCS1v1.5 + SHA-256)."],
             ["-1 (crv / n)", "For EC2: curve ID. 1 = P-256, 2 = P-384, 3 = P-521. For OKP: 6 = Ed25519. For RSA: the modulus n."],
             ["-2 (x / e)", "For EC2 / OKP: the x-coordinate of the public key point. For RSA: the public exponent e."],
             ["-3 (y)", "For EC2 only: the y-coordinate (not present in OKP or RSA keys)."],
-          ].map(([label, desc]) => (
-            <div key={label}>
-              <dt className="font-mono text-xs text-foreground font-medium">{label}</dt>
-              <dd className="mt-0.5 pl-3">{desc}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="text-muted-foreground">
+          ]}
+        />
+        <Prose>
           COSE's integer labels make serialized keys compact — roughly 30% smaller than an
           equivalent JWK — which matters inside the packed binary format of authenticatorData.
-        </p>
-      </section>
+        </Prose>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">What's Inside clientDataJSON</h2>
-        <p className="text-muted-foreground">
-          <code className="font-mono text-xs bg-muted px-1 rounded">clientDataJSON</code> is not CBOR — it is
-          UTF-8 JSON, base64url-encoded. The browser creates it and the authenticator signs it
-          indirectly (as SHA-256(clientDataJSON)). Key fields:
-        </p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li><strong className="text-foreground">type</strong> — either <code className="font-mono text-xs bg-muted px-1 rounded">"webauthn.create"</code> (registration) or <code className="font-mono text-xs bg-muted px-1 rounded">"webauthn.get"</code> (authentication). The server must verify this to prevent cross-ceremony replay attacks.</li>
-          <li><strong className="text-foreground">challenge</strong> — the base64url-encoded random challenge issued by the server. Must be verified byte-for-byte.</li>
-          <li><strong className="text-foreground">origin</strong> — the origin (scheme + host + port) of the page that invoked WebAuthn. The server must verify this matches its expected origin.</li>
-          <li><strong className="text-foreground">crossOrigin</strong> — boolean, true when the WebAuthn call was made inside a cross-origin iframe. Relying parties that do not embed WebAuthn in iframes should reject true.</li>
-          <li><strong className="text-foreground">tokenBinding</strong> — optional; relates to TLS token binding (rarely used in practice).</li>
+      <Section id="client-data-json" title="What's Inside clientDataJSON">
+        <Prose>
+          <Code>clientDataJSON</Code> is not CBOR — it is UTF-8 JSON, base64url-encoded. The browser
+          creates it and the authenticator signs it indirectly (as SHA-256(clientDataJSON)). Key fields:
+        </Prose>
+        <Bullets
+          gap="space-y-1.5"
+          items={[
+            <><Strong>type</Strong> — either <Code>"webauthn.create"</Code> (registration) or <Code>"webauthn.get"</Code> (authentication). The server must verify this to prevent cross-ceremony replay attacks.</>,
+            <><Strong>challenge</Strong> — the base64url-encoded random challenge issued by the server. Must be verified byte-for-byte.</>,
+            <><Strong>origin</Strong> — the origin (scheme + host + port) of the page that invoked WebAuthn. The server must verify this matches its expected origin.</>,
+            <><Strong>crossOrigin</Strong> — boolean, true when the WebAuthn call was made inside a cross-origin iframe. Relying parties that do not embed WebAuthn in iframes should reject true.</>,
+            <><Strong>tokenBinding</Strong> — optional; relates to TLS token binding (rarely used in practice).</>,
+          ]}
+        />
+      </Section>
+
+      <Section id="debugging" title="Common Debugging Scenarios">
+        <Prose>Use WebAuthn Decoder to diagnose these frequent integration problems:</Prose>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          <ScenarioCard title="Origin mismatch">
+            The <Code>origin</Code> in <Code>clientDataJSON</Code> does not match the server's expected
+            origin. Common cause: testing on <Code>localhost</Code> but comparing against a production
+            domain, or a missing port number.
+          </ScenarioCard>
+          <ScenarioCard title="RP ID hash mismatch">
+            The first 32 bytes of <Code>authenticatorData</Code> do not match SHA-256(rpId). Often caused
+            by a misconfigured <Code>rp.id</Code> in the credential options, or by comparing the wrong
+            domain (e.g. including a subdomain that wasn't intended).
+          </ScenarioCard>
+          <ScenarioCard title="signCount regression">
+            The signCount in the assertion is equal to or less than the value stored from a previous
+            authentication. This is the authenticator's cloning-detection mechanism. Investigate
+            whether multiple devices share a credential or whether the server's stored count is
+            incorrect.
+          </ScenarioCard>
+          <ScenarioCard title="Unexpected AAGUID">
+            The AAGUID in <Code>attestedCredentialData</Code> does not match the authenticator you
+            expected. Check the FIDO Metadata Service (MDS) to see what device the AAGUID belongs to.
+          </ScenarioCard>
+          <ScenarioCard title="Unsupported attestation format">
+            The server's attestation verification library does not support the <Code>fmt</Code> returned
+            by the authenticator. Either widen the accepted formats or set{" "}
+            <Code>attestation: "none"</Code> in <Code>PublicKeyCredentialCreationOptions</Code> if you do
+            not need attestation verification.
+          </ScenarioCard>
+          <ScenarioCard title="UP or UV flag not set">
+            The authenticator did not assert user presence (UP) or user verification (UV). Verify that
+            the authenticator model supports the required user verification method and that{" "}
+            <Code>userVerification</Code> is set to <Code>"required"</Code> when UV is mandatory for your
+            threat model.
+          </ScenarioCard>
         </ul>
-      </section>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Common Debugging Scenarios</h2>
-        <p className="text-muted-foreground">
-          Use WebAuthn Decoder to diagnose these frequent integration problems:
-        </p>
-        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-          <li><strong className="text-foreground">Origin mismatch</strong> — the <code className="font-mono text-xs bg-muted px-1 rounded">origin</code> in <code className="font-mono text-xs bg-muted px-1 rounded">clientDataJSON</code> does not match the server's expected origin. Common cause: testing on <code className="font-mono text-xs bg-muted px-1 rounded">localhost</code> but comparing against a production domain, or a missing port number.</li>
-          <li><strong className="text-foreground">RP ID hash mismatch</strong> — the first 32 bytes of <code className="font-mono text-xs bg-muted px-1 rounded">authenticatorData</code> do not match SHA-256(rpId). Often caused by a misconfigured <code className="font-mono text-xs bg-muted px-1 rounded">rp.id</code> in the credential options, or by comparing the wrong domain (e.g. including a subdomain that wasn't intended).</li>
-          <li><strong className="text-foreground">signCount regression</strong> — the signCount in the assertion is equal to or less than the value stored from a previous authentication. This is the authenticator's cloning-detection mechanism. Investigate whether multiple devices share a credential or whether the server's stored count is incorrect.</li>
-          <li><strong className="text-foreground">Unexpected AAGUID</strong> — the AAGUID in <code className="font-mono text-xs bg-muted px-1 rounded">attestedCredentialData</code> does not match the authenticator you expected. Check the FIDO Metadata Service (MDS) to see what device the AAGUID belongs to.</li>
-          <li><strong className="text-foreground">Unsupported attestation format</strong> — the server's attestation verification library does not support the <code className="font-mono text-xs bg-muted px-1 rounded">fmt</code> returned by the authenticator. Either widen the accepted formats or set <code className="font-mono text-xs bg-muted px-1 rounded">attestation: "none"</code> in <code className="font-mono text-xs bg-muted px-1 rounded">PublicKeyCredentialCreationOptions</code> if you do not need attestation verification.</li>
-          <li><strong className="text-foreground">UP or UV flag not set</strong> — the authenticator did not assert user presence (UP) or user verification (UV). Verify that the authenticator model supports the required user verification method and that <code className="font-mono text-xs bg-muted px-1 rounded">userVerification</code> is set to <code className="font-mono text-xs bg-muted px-1 rounded">"required"</code> when UV is mandatory for your threat model.</li>
-        </ul>
-      </section>
+      <Section id="privacy" title="Privacy & Security of This Tool">
+        <div className="max-w-3xl rounded-xl border border-success/25 bg-success/5 p-5">
+          <div className="flex items-start gap-3.5">
+            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-success/15 text-success">
+              <ShieldCheck className="size-4.5" aria-hidden="true" />
+            </span>
+            <div className="space-y-3">
+              <p className="text-pretty text-muted-foreground">
+                WebAuthn payloads often contain real credential identifiers, user handles, and AAGUID
+                values that can identify both the user and their authenticator. WebAuthn Decoder is
+                designed so that none of this data ever leaves your browser:
+              </p>
+              <ul className="space-y-1.5 text-muted-foreground">
+                {[
+                  "All decoding (CBOR, base64url, hex, binary parsing) runs in JavaScript inside your browser tab.",
+                  "No network requests are made with payload data — you can verify this with browser DevTools → Network.",
+                  "No analytics, telemetry, or third-party SDKs receive your credential data.",
+                  "There is no server-side component. The tool is a static single-page application.",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <Check className="mt-1 size-3.5 shrink-0 text-success" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-foreground/90">
+                You can safely paste production credentials from your WebAuthn integration for
+                debugging purposes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Privacy &amp; Security of This Tool</h2>
-        <p className="text-muted-foreground">
-          WebAuthn payloads often contain real credential identifiers, user handles, and AAGUID values
-          that can identify both the user and their authenticator. WebAuthn Decoder is designed so that
-          none of this data ever leaves your browser:
-        </p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li>All decoding (CBOR, base64url, hex, binary parsing) runs in JavaScript inside your browser tab.</li>
-          <li>No network requests are made with payload data — you can verify this with browser DevTools → Network.</li>
-          <li>No analytics, telemetry, or third-party SDKs receive your credential data.</li>
-          <li>There is no server-side component. The tool is a static single-page application.</li>
-        </ul>
-        <p className="text-muted-foreground">
-          You can safely paste production credentials from your WebAuthn integration for debugging
-          purposes.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Frequently Asked Questions</h2>
-        <dl className="space-y-5">
-          {[
+      <Section id="faq" title="Frequently Asked Questions">
+        <Faq
+          items={[
             [
               "Is base64url different from standard base64?",
               "Yes. Base64url uses - instead of + and _ instead of / in the alphabet, and omits = padding characters. WebAuthn uses base64url everywhere. Attempting to decode a WebAuthn payload with a standard base64 decoder often fails or produces garbage bytes — make sure to use a URL-safe decoder."
@@ -298,15 +425,10 @@ export function EducationalContent() {
               "What is the difference between attestation and assertion?",
               "Attestation is part of registration: the authenticator proves its identity and model to the server by signing with a manufacturer certificate chain. Assertion is part of authentication: the authenticator proves ownership of a previously registered private key by signing the challenge. Most deployments use attestation-none (skipping the proof-of-model step) because the full attestation verification infrastructure is complex."
             ],
-          ].map(([q, a]) => (
-            <div key={q}>
-              <dt className="font-semibold text-foreground">{q}</dt>
-              <dd className="mt-1 text-muted-foreground">{a}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-      </article>
+          ]}
+        />
+      </Section>
+    </article>
     </details>
   )
 }
