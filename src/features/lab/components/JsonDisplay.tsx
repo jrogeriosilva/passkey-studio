@@ -18,7 +18,7 @@ export default function JsonDisplay({
   copyable = true,
   className,
 }: JsonDisplayProps) {
-  const jsonString = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
+  const jsonString = typeof data === 'string' ? data : JSON.stringify(data, (_, value) => value instanceof Uint8Array ? Array.from(value, byte => byte.toString(16).padStart(2, '0')).join('') : value, 2)
   const parsed = typeof data === 'string'
     ? (() => { try { return JSON.parse(data) } catch { return data } })()
     : data

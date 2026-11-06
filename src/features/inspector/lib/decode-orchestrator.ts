@@ -24,6 +24,7 @@
  */
 
 import { decodeAttestationObject } from "@/inspector/lib/decode-attestation";
+import { parseAuthData } from "@/inspector/lib/decode-authdata";
 import { decodeAssertion } from "@/inspector/lib/decode-assertion";
 import { decodeClientDataJSON } from "@/inspector/lib/decode-clientdata";
 import { decode } from "cbor-x/decode";
@@ -64,6 +65,11 @@ export function decodePayload(
       return { ok: true, type: "clientDataJSON", data: result.data };
     }
 
+    case "authenticatorData": {
+      const result = parseAuthData(bytes);
+      return result.ok ? { ok: true, type: "authenticatorData", data: result.data } : result;
+    }
+
     case "raw-cbor": {
       try {
         const input =
@@ -97,14 +103,9 @@ export function decodePayload(
  */
 export function decodeFullCredential(envelope: PublicKeyCredentialEnvelope): DecodeResult {
   try {
-    const response: {
-      transports?: string[];
-      publicKeyAlgorithm?: { raw: number; name: string };
-      publicKey?: Uint8Array;
-      attestationObject?: import("@/inspector/lib/types").DecodedAttestationObject;
-      authenticatorData?: import("@/inspector/lib/types").DecodedAuthData;
-      clientDataJSON?: import("@/inspector/lib/types").DecodedClientDataJSON;
-    } = {};
+    const response: import("@/inspector/lib/types").DecodedPublicKeyCredential["response"] = {};
+    if (envelope.signature) response.signature = envelope.signature;
+    if (envelope.userHandle !== undefined) response.userHandle = envelope.userHandle;
 
     if (envelope.transports) response.transports = envelope.transports;
     if (envelope.publicKeyAlgorithm !== undefined) {
@@ -119,18 +120,17 @@ export function decodeFullCredential(envelope: PublicKeyCredentialEnvelope): Dec
       }
       response.attestationObject = inner.data;
     } else {
-      const inner = decodeAssertion(envelope.innerBytes);
+      const inner = parseAuthData(envelope.innerBytes);
       if (!inner.ok) {
-        return { ok: false, error: `authenticatorData: ${inner.error}`, suggestion: inner.suggestion };
+        return { ok: false, error: `authenticatorData: ${inner.error}` };
       }
-      response.authenticatorData = inner.data.authenticatorData;
+      response.authenticatorData = inner.data;
     }
 
     if (envelope.clientDataJSON) {
       const cdjResult = decodeClientDataJSON(envelope.clientDataJSON);
-      if (cdjResult.ok) {
-        response.clientDataJSON = cdjResult.data;
-      }
+      if (!cdjResult.ok) return { ...cdjResult, error: `clientDataJSON: ${cdjResult.error}` };
+      response.clientDataJSON = cdjResult.data;
     }
 
     return {

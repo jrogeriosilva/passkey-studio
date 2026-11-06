@@ -152,7 +152,7 @@ describe("decodeAssertion", () => {
       expect(result.ok).toBe(false);
       if (result.ok) throw new Error("Expected error");
       expect(result.suggestion).toBeDefined();
-      expect(result.suggestion).toContain("Registration");
+      expect(result.suggestion).toContain("automaticamente");
     });
 
     it("returns error for non-CBOR input", () => {

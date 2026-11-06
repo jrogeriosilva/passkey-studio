@@ -42,7 +42,7 @@ test('language preference survives reload and unavailable storage', () => {
     globalThis.localStorage.getItem = () => { throw new Error('Storage disabled') }
     assert.equal(detectLanguage(), 'pt')
     globalThis.navigator.language = 'fr-FR'
-    assert.equal(detectLanguage(), 'en')
+    assert.equal(detectLanguage(), 'pt')
   } finally {
     if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage)
     else delete globalThis.localStorage

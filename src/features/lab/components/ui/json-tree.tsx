@@ -16,9 +16,11 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string
 
 interface NodeCopyButtonProps {
   value: string
+  label: string
 }
 
-function NodeCopyButton({ value }: NodeCopyButtonProps) {
+function NodeCopyButton({ value, label }: NodeCopyButtonProps) {
+  const [error, setError] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -27,16 +29,16 @@ function NodeCopyButton({ value }: NodeCopyButtonProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch {
-      // ignore
+      setError(true)
     }
   }
   return (
     <button
       onClick={handleCopy}
       className="tree-copy ml-1.5 opacity-0 focus:opacity-100 group-hover/val:opacity-100 transition-opacity rounded px-1 py-0.5 text-[11px] hover:bg-white/10 active:bg-white/20"
-      title="Copy value"
+      title={`Copiar ${label}`} aria-label={`Copiar ${label}`}
     >
-      {copied ? (
+      {error ? <span role="alert">Falha ao copiar</span> : copied ? (
         <Check size={10} className="text-green-400 inline" />
       ) : (
         <Copy size={10} className="inline" style={{ color: COLORS.punctuation }} />
@@ -77,7 +79,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
     return null
   }
 
-  const valueStr = isCollapsible ? '' : String(value === null ? 'null' : typeof value === 'string' ? `"${value}"` : value)
+  const valueStr = isCollapsible ? '' : String(value === null ? 'null' : value)
 
   return (
     <div style={{ paddingLeft: `${indent}px` }}>
@@ -86,7 +88,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
           <button type="button"
             className="flex items-center text-left cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 select-none"
             aria-expanded={expanded}
-            aria-label={`${expanded ? 'Collapse' : 'Expand'} ${keyName ?? 'JSON'}`}
+            aria-label={`${expanded ? 'Recolher' : 'Expandir'} ${keyName ?? 'JSON'}`}
             onClick={() => setExpanded(e => !e)}
           >
             <span className="mr-0.5" style={{ color: COLORS.punctuation }}>
@@ -105,7 +107,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
                 <span style={{ color: COLORS.punctuation }}>{bracket[1]}{suffix}</span>
               </>
             )}
-            {expanded && <span style={{ color: COLORS.punctuation }} className="ml-1 text-[11px]">{entries.length} {isArray ? 'items' : 'keys'}</span>}
+            {expanded && <span style={{ color: COLORS.punctuation }} className="ml-1 text-[11px]">{entries.length} {isArray ? 'itens' : 'campos'}</span>}
           </button>
           {expanded && (
             <>
@@ -136,7 +138,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
           )}
           <span>{renderValue(value)}</span>
           <span style={{ color: COLORS.punctuation }}>{suffix}</span>
-          <NodeCopyButton value={valueStr} />
+          <NodeCopyButton label={String(keyName ?? "valor")} value={valueStr} />
         </div>
       )}
     </div>
@@ -149,7 +151,7 @@ interface JsonTreeProps {
 }
 
 function JsonTree({ data, className }: JsonTreeProps) {
-  const value = data as JsonValue
+  const value = JSON.parse(JSON.stringify(data, (_, value) => value instanceof Uint8Array ? Array.from(value, byte => byte.toString(16).padStart(2, '0')).join('') : value)) as JsonValue
   const isObject = value !== null && typeof value === 'object' && !Array.isArray(value)
   const isArray = Array.isArray(value)
 

@@ -79,6 +79,19 @@ export function tryExtractPublicKeyCredential(
     if (decoded) clientDataJSON = decoded;
   }
 
+  const binaryFields: { signature?: Uint8Array; userHandle?: Uint8Array | null } = {};
+  for (const field of ["signature", "userHandle"] as const) {
+    const value = response[field];
+    if (value === null && field === "userHandle") { binaryFields.userHandle = null; continue; }
+    if (value !== undefined) {
+      if (typeof value !== "string") return null;
+      const decoded = safeBase64urlDecode(value);
+      if (!decoded) return null;
+      binaryFields[field] = decoded;
+    }
+  }
+  if (response.clientDataJSON !== undefined && !clientDataJSON) return null;
+
   // Optional outer fields
   const credentialType = typeof obj.type === "string" ? obj.type : undefined;
   const authenticatorAttachment =
@@ -107,6 +120,7 @@ export function tryExtractPublicKeyCredential(
   }
 
   return {
+    ...binaryFields,
     rawId,
     rawIdB64,
     innerBytes,

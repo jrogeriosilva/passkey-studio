@@ -35,7 +35,7 @@ function tryBase64url(trimmed: string, reason: string): FormatResult {
  * 3. All chars in [0-9a-fA-F] -> hex if even length, ambiguous error if odd
  * 4. Nothing matched -> error with character position
  */
-export function detectAndNormalize(input: string): FormatResult {
+export function detectAndNormalize(input: string, format: "auto" | "base64url" | "hex" | "json" = "auto"): FormatResult {
   const trimmed = input.trim();
 
   if (!trimmed) {
@@ -45,14 +45,28 @@ export function detectAndNormalize(input: string): FormatResult {
     };
   }
 
+  if (format === "base64url") return tryBase64url(trimmed, "caracteres inválidos");
+  if (format === "hex") {
+    try { return { ok: true, format: "hex", bytes: hexToBytes(trimmed) }; }
+    catch { return { ok: false, error: "Hexadecimal inválido. Use pares de dígitos de 0 a 9 e a a f." }; }
+  }
+  if (format === "json") {
+    try { JSON.parse(trimmed); return { ok: true, format: "json", bytes: new TextEncoder().encode(trimmed).buffer as ArrayBuffer }; }
+    catch { return { ok: false, error: "JSON inválido. Confira aspas, vírgulas e chaves." }; }
+  }
+
   // Step -1: Starts with '{' -- try to parse as JSON (PublicKeyCredential envelope)
   if (trimmed.startsWith("{")) {
     try {
       JSON.parse(trimmed);
-      return { ok: true, format: "json", bytes: new ArrayBuffer(0) };
+      return { ok: true, format: "json", bytes: new TextEncoder().encode(trimmed).buffer as ArrayBuffer };
     } catch {
       return { ok: false, error: "Invalid JSON: could not parse input as JSON" };
     }
+  }
+
+  if (/[+/=]/.test(trimmed)) {
+    return { ok: false, error: "Base64 padrão detectado. Converta + para -, / para _ e remova o padding = para obter base64url." };
   }
 
   // Step 0: Check for 0x/0X prefix -- definitively hex

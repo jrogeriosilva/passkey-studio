@@ -1,3 +1,4 @@
+import { diagnostic } from "@/inspector/lib/diagnostics"
 import { useState, type ReactNode } from "react"
 import { Braces, Check, Copy, ScanSearch, TriangleAlert } from "lucide-react"
 import type { DecodeResult, PayloadType } from "@/inspector/lib/types"
@@ -17,6 +18,7 @@ interface OutputAreaProps {
 
 /** Tinted badge per payload type so the detected kind is recognisable at a glance. */
 const TYPE_BADGE_CLASS: Record<DetectedType, string> = {
+  authenticatorData: "border-primary/30 bg-primary/10 text-primary",
   registration: "border-primary/30 bg-primary/10 text-primary",
   authentication: "border-tree-key/30 bg-tree-key/10 text-tree-key",
   clientDataJSON: "border-warning/30 bg-warning/10 text-warning",
@@ -41,12 +43,12 @@ function CopyAllButton({ tree }: { tree: Record<string, unknown> }) {
     <div className="flex flex-col items-start gap-1">
     <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
       {copied ? (
-        <><Check className="size-3.5 text-green-500" />Copied</>
+        <><Check className="size-3.5 text-success" />Copiado</>
       ) : (
-        <><Copy className="size-3.5" />Copy all</>
+        <><Copy className="size-3.5" />Copiar tudo</>
       )}
     </Button>
-    {copyError && <p role="alert" className="text-xs text-destructive">Copy failed. Select the output and copy it manually.</p>}
+    {copyError && <p role="alert" className="text-xs text-destructive">Falha ao copiar. Selecione a saída e copie manualmente.</p>}
     </div>
   )
 }
@@ -70,7 +72,7 @@ function OutputShell({ children, badge, actions, tone = "default" }: OutputShell
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Braces className="size-4 text-muted-foreground" aria-hidden="true" />
           <h2 id="output-heading" className="text-sm font-medium">
-            Decoded output
+            Resultado
           </h2>
           {badge}
         </div>
@@ -82,6 +84,8 @@ function OutputShell({ children, badge, actions, tone = "default" }: OutputShell
 }
 
 export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
+  const [encoding, setEncoding] = useState<"hex" | "base64url">("hex")
+  const [expansion, setExpansion] = useState<{ all?: boolean; key: number }>({ key: 0 })
   if (!decodeResult) {
     return (
       <OutputShell>
@@ -90,10 +94,9 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
             <ScanSearch className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-medium">Nothing decoded yet</p>
+            <p className="text-sm font-medium">Aguardando entrada</p>
             <p className="mt-1 max-w-sm text-sm text-pretty text-muted-foreground">
-              Paste a payload above or load a sample. Decoded output will appear here as an
-              interactive tree.
+              Os campos decodificados aparecerão aqui.
             </p>
           </div>
         </div>
@@ -109,9 +112,9 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
             <TriangleAlert className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <p role="alert" className="text-sm font-medium text-destructive">{decodeResult.error}</p>
+            <p role="alert" className="text-sm font-medium text-destructive">{diagnostic(decodeResult.error)}</p>
             {decodeResult.suggestion && (
-              <p className="mt-1 text-sm text-pretty text-muted-foreground">{decodeResult.suggestion}</p>
+              <p className="mt-1 text-sm text-pretty text-muted-foreground">{diagnostic(decodeResult.suggestion)}</p>
             )}
           </div>
         </div>
@@ -119,7 +122,14 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
     )
   }
 
-  const { tree } = preprocessForTree(decodeResult)
+  const { tree } = preprocessForTree(decodeResult, encoding)
+  const auth = decodeResult.type === 'authenticatorData' ? decodeResult.data
+    : decodeResult.type === 'attestationObject' ? decodeResult.data.authData
+    : decodeResult.type === 'assertion' ? decodeResult.data.authenticatorData
+    : decodeResult.type === 'publicKeyCredential' ? decodeResult.data.response.authenticatorData ?? decodeResult.data.response.attestationObject?.authData : undefined
+  const client = decodeResult.type === 'clientDataJSON' ? decodeResult.data
+    : decodeResult.type === 'assertion' ? decodeResult.data.clientDataJSON
+    : decodeResult.type === 'publicKeyCredential' ? decodeResult.data.response.clientDataJSON : undefined
 
   return (
     <OutputShell
@@ -133,10 +143,19 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
           </Badge>
         )
       }
-      actions={<CopyAllButton tree={tree} />}
+      actions={<div className="flex flex-wrap items-center gap-2">
+        <label className="text-xs">Bytes <select aria-label="Formato dos bytes" value={encoding} onChange={e => setEncoding(e.target.value as "hex" | "base64url")}><option>hex</option><option>base64url</option></select></label>
+        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: true, key: v.key + 1 }))}>Expandir tudo</Button>
+        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: false, key: v.key + 1 }))}>Recolher tudo</Button>
+        <CopyAllButton tree={tree} />
+      </div>}
     >
+      {(auth || client) && <dl className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border px-4 py-3 text-xs">
+        {client && <div><dt className="text-muted-foreground">Origem · cerimônia</dt><dd className="break-all">{client.origin} · {client.type}</dd></div>}
+        {auth && <><div><dt className="text-muted-foreground">Contador</dt><dd>{auth.signCount}</dd></div><div><dt className="text-muted-foreground">Flags ativas</dt><dd>{Object.entries(auth.flags).filter(([key, value]) => key !== 'rawByte' && value === true).map(([key]) => key.toUpperCase()).join(' · ') || 'Nenhuma'}</dd></div></>}
+      </dl>}
       <div className="overflow-x-auto px-3 py-3 sm:px-4">
-        <DecodeTreeView tree={tree} />
+        <DecodeTreeView key={expansion.key} tree={tree} expandAll={expansion.all} />
       </div>
     </OutputShell>
   )

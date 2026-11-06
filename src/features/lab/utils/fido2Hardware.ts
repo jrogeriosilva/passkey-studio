@@ -1,150 +1,80 @@
 import { base64url } from './crypto'
 
-export const isWebAuthnSupported = (): boolean => {
-  return typeof window !== 'undefined' && !!window.PublicKeyCredential
+export const isWebAuthnSupported = (): boolean => typeof window !== 'undefined' && !!window.PublicKeyCredential
+
+function validateRpId(rpId: unknown) {
+  if (rpId === undefined) return
+  const host = window.location.hostname
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(String(rpId))) throw new Error('RP ID numérico não é aceito pelo navegador. Use localhost no desenvolvimento ou o domínio do RP.')
+  if (typeof rpId !== 'string' || (rpId !== host && !host.endsWith(`.${rpId}`))) {
+    throw new Error(`O RP ID deve ser ${host} ou um domínio pai válido. Abra o Lab na origem do RP para usar hardware.`)
+  }
 }
 
-interface CreateCredentialOptions {
-  challenge: string | ArrayBuffer
-  rpId?: string
-  rpName?: string
-  userId?: string
-  userName?: string
-  userDisplayName?: string
-  timeout?: number
-  authenticatorSelection?: Partial<AuthenticatorSelectionCriteria>
+function descriptors(value: unknown) {
+  if (value === undefined) return undefined
+  if (!Array.isArray(value)) throw new Error('allowCredentials/excludeCredentials deve ser uma lista.')
+  return value.map(item => ({ ...item, id: base64url.decode(item.id) }))
 }
 
-export const createCredential = async ({
-  challenge,
-  rpId = window.location.hostname,
-  rpName = 'FIDO2 Test Client',
-  userId = 'test-user',
-  userName = 'testuser@example.com',
-  userDisplayName = 'Test User',
-  timeout = 60000,
-  authenticatorSelection = {},
-}: CreateCredentialOptions) => {
-  if (!isWebAuthnSupported()) throw new Error('WebAuthn is not supported in this browser')
-
-  let challengeBuffer: ArrayBuffer
-  if (typeof challenge === 'string') {
-    try {
-      challengeBuffer = base64url.decode(challenge)
-    } catch {
-      challengeBuffer = new TextEncoder().encode(challenge).buffer as ArrayBuffer
-    }
-  } else {
-    challengeBuffer = challenge
-  }
-
-  const options: PublicKeyCredentialCreationOptions = {
-    challenge: challengeBuffer,
-    rp: { name: rpName, id: rpId },
-    user: {
-      id: new TextEncoder().encode(userId),
-      name: userName,
-      displayName: userDisplayName,
-    },
-    pubKeyCredParams: [
-      { type: 'public-key', alg: -7 },
-      { type: 'public-key', alg: -257 },
-    ],
-    timeout,
-    authenticatorSelection: {
-      authenticatorAttachment: authenticatorSelection.authenticatorAttachment ?? 'platform',
-      requireResidentKey: authenticatorSelection.requireResidentKey ?? false,
-      userVerification: authenticatorSelection.userVerification ?? 'preferred',
-    },
-    attestation: 'direct',
-  }
-
-  const credential = await navigator.credentials.create({ publicKey: options })
-  if (!credential) throw new Error('No credential returned')
-
-  const pkCredential = credential as PublicKeyCredential
-  const response = pkCredential.response as AuthenticatorAttestationResponse
-  const clientDataJSON = new TextDecoder().decode(response.clientDataJSON)
-
+export const createCredential = async (config: Record<string, unknown>) => {
+  if (!isWebAuthnSupported()) throw new Error('WebAuthn não está disponível neste navegador.')
+  const rp = { name: 'Passkey Studio', ...(config.rp as object) } as PublicKeyCredentialRpEntity
+  validateRpId(rp.id)
+  const user = { name: 'teste@example.com', displayName: 'Pessoa de teste', ...(config.user as object) } as { id: string; name: string; displayName: string }
+  const json = { timeout: 60000, pubKeyCredParams: [{ type: "public-key", alg: -7 }], ...config, rp, user }
+  const options = typeof PublicKeyCredential.parseCreationOptionsFromJSON === "function" ? PublicKeyCredential.parseCreationOptionsFromJSON(json as PublicKeyCredentialCreationOptionsJSON) : {
+    timeout: 60000,
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+    ...config,
+    rp,
+    user: { ...user, id: base64url.decode(user.id) },
+    challenge: base64url.decode(config.challenge as string),
+    ...(config.excludeCredentials !== undefined ? { excludeCredentials: descriptors(config.excludeCredentials) } : {}),
+  } as PublicKeyCredentialCreationOptions
+  const credential = await navigator.credentials.create({ publicKey: options }) as PublicKeyCredential | null
+  if (!credential) throw new Error('O autenticador não retornou uma credencial. Tente novamente.')
+  const response = credential.response as AuthenticatorAttestationResponse
   return {
-    id: pkCredential.id,
-    rawId: base64url.encode(pkCredential.rawId),
-    type: pkCredential.type,
+    id: credential.id,
+    rawId: base64url.encode(credential.rawId),
+    type: credential.type,
+    authenticatorAttachment: credential.authenticatorAttachment,
+    clientExtensionResults: credential.getClientExtensionResults(),
     response: {
       clientDataJSON: base64url.encode(response.clientDataJSON),
       attestationObject: base64url.encode(response.attestationObject),
-      clientData: JSON.parse(clientDataJSON),
+      transports: response.getTransports?.(),
+      publicKeyAlgorithm: response.getPublicKeyAlgorithm?.(),
     },
   }
 }
 
-interface GetAssertionOptions {
-  challenge: string | ArrayBuffer
-  rpId?: string
-  credentialId?: string | null
-  timeout?: number
-  userVerification?: UserVerificationRequirement
-}
-
-export const getAssertion = async ({
-  challenge,
-  rpId = window.location.hostname,
-  credentialId = null,
-  timeout = 60000,
-  userVerification = 'preferred',
-}: GetAssertionOptions) => {
-  if (!isWebAuthnSupported()) throw new Error('WebAuthn is not supported in this browser')
-
-  let challengeBuffer: ArrayBuffer
-  if (typeof challenge === 'string') {
-    try {
-      challengeBuffer = base64url.decode(challenge)
-    } catch {
-      challengeBuffer = new TextEncoder().encode(challenge).buffer as ArrayBuffer
-    }
-  } else {
-    challengeBuffer = challenge
-  }
-
-  const options: PublicKeyCredentialRequestOptions = {
-    challenge: challengeBuffer,
-    rpId,
-    timeout,
-    userVerification,
-    ...(credentialId
-      ? {
-          allowCredentials: [
-            { type: 'public-key', id: base64url.decode(credentialId) },
-          ],
-        }
-      : {}),
-  }
-
-  const assertion = await navigator.credentials.get({ publicKey: options })
-  if (!assertion) throw new Error('No assertion returned')
-
-  const pkAssertion = assertion as PublicKeyCredential
-  const response = pkAssertion.response as AuthenticatorAssertionResponse
-  const clientDataJSON = new TextDecoder().decode(response.clientDataJSON)
-
+export const getAssertion = async (config: Record<string, unknown>) => {
+  if (!isWebAuthnSupported()) throw new Error('WebAuthn não está disponível neste navegador.')
+  validateRpId(config.rpId)
+  const options = typeof PublicKeyCredential.parseRequestOptionsFromJSON === "function" ? PublicKeyCredential.parseRequestOptionsFromJSON({ ...config, challenge: config.challenge as string } as PublicKeyCredentialRequestOptionsJSON) : {
+    timeout: 60000,
+    ...config,
+    challenge: base64url.decode(config.challenge as string),
+    ...(config.allowCredentials !== undefined ? { allowCredentials: descriptors(config.allowCredentials) } : {}),
+  } as PublicKeyCredentialRequestOptions
+  const credential = await navigator.credentials.get({ publicKey: options }) as PublicKeyCredential | null
+  if (!credential) throw new Error('O autenticador não retornou uma resposta. Tente novamente.')
+  const response = credential.response as AuthenticatorAssertionResponse
   return {
-    id: pkAssertion.id,
-    rawId: base64url.encode(pkAssertion.rawId),
-    type: pkAssertion.type,
+    id: credential.id,
+    rawId: base64url.encode(credential.rawId),
+    type: credential.type,
+    authenticatorAttachment: credential.authenticatorAttachment,
+    clientExtensionResults: credential.getClientExtensionResults(),
     response: {
       clientDataJSON: base64url.encode(response.clientDataJSON),
       authenticatorData: base64url.encode(response.authenticatorData),
       signature: base64url.encode(response.signature),
       userHandle: response.userHandle ? base64url.encode(response.userHandle) : null,
-      clientData: JSON.parse(clientDataJSON),
     },
   }
 }
 
-export const parseAlgorithm = (alg: number): string => {
-  switch (alg) {
-    case -7: return 'ES256'
-    case -257: return 'RS256'
-    default: return 'Unknown'
-  }
-}
+export const parseAlgorithm = (alg: number): string => alg === -7 ? 'ES256' : alg === -257 ? 'RS256' : 'Desconhecido'

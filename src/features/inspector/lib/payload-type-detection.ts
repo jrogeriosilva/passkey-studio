@@ -1,3 +1,4 @@
+import { parseAuthData } from "@/inspector/lib/decode-authdata";
 import { decode } from "cbor-x/decode";
 import type { PayloadType, DecodeResult } from "@/inspector/lib/types";
 import { decodePayload } from "@/inspector/lib/decode-orchestrator";
@@ -26,6 +27,7 @@ export function autoDetectAndDecode(bytes: ArrayBuffer | Uint8Array): AutoDecode
     if (typeof parsed === "object" && parsed !== null && typeof (parsed as Record<string, unknown>).type === "string") {
       return { detectedType: "clientDataJSON", result: decodePayload("clientDataJSON", bytes) };
     }
+    return { detectedType: "clientDataJSON", result: { ok: false, error: "JSON não reconhecido. Informe clientDataJSON com type, origin e challenge, ou um PublicKeyCredential com rawId e response válidos." } };
   } catch {
     // not UTF-8 JSON
   }
@@ -46,16 +48,22 @@ export function autoDetectAndDecode(bytes: ArrayBuffer | Uint8Array): AutoDecode
     // not valid CBOR
   }
 
+  if (u8.length >= 37) {
+    const auth = parseAuthData(u8);
+    if (auth.ok) return { detectedType: "authenticatorData", result: { ok: true, type: "authenticatorData", data: auth.data } };
+  }
+
   // 3. Fallback
   return { detectedType: "raw-cbor", result: decodePayload("raw-cbor", bytes) };
 }
 
 export function payloadTypeLabel(type: PayloadType | "publicKeyCredential"): string {
   switch (type) {
-    case "registration": return "Registration (attestationObject)";
-    case "authentication": return "Authentication (Assertion)";
+    case "registration": return "Registro (attestationObject)";
+    case "authentication": return "Autenticação (assertion)";
     case "clientDataJSON": return "clientDataJSON";
-    case "raw-cbor": return "Raw CBOR";
+    case "authenticatorData": return "authenticatorData";
+    case "raw-cbor": return "CBOR bruto";
     case "publicKeyCredential": return "PublicKeyCredential";
   }
 }

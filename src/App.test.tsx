@@ -1,8 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import App from './App';
-vi.mock('./features/learn/App', () => ({ default: () => <div>Learn feature</div> }));
-vi.mock('./features/lab/App', () => ({ default: () => <div>Lab feature</div> }));
+vi.mock('./features/learn/App', () => ({ default: () => <div>Learn feature<a href="/webauthn-decoder/?sample=clientdata-create#top">Example link</a></div> }));
+vi.mock('./features/lab/App', () => ({ default: () => <div>Lab feature<input aria-label="Lab draft" /></div> }));
 vi.mock('./features/inspector/App', () => ({ default: () => <div>Inspector feature</div> }));
 vi.stubGlobal('scrollTo', vi.fn());
 afterEach(() => { vi.unstubAllEnvs(); cleanup(); window.history.replaceState(null, '', '/'); });
@@ -50,4 +50,24 @@ test('keeps navigation and history inside the GitHub Pages project base', () => 
   window.history.replaceState(null, '', '/passkey-studio/fido2-demo/');
   fireEvent.popState(window);
   expect(screen.getByText('Learn feature')).toBeInTheDocument();
+});
+
+
+test('preserves drafts across tools and keeps query and hash on internal navigation', () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  fireEvent.change(screen.getByRole('textbox', { name: 'Lab draft' }), { target: { value: 'synthetic draft' } });
+  fireEvent.click(screen.getByRole('link', { name: /Aprender/ }));
+  fireEvent.click(screen.getByRole('link', { name: 'Example link' }));
+  expect(window.location.search).toBe('?sample=clientdata-create');
+  expect(window.location.hash).toBe('#top');
+  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  expect(screen.getByRole('textbox', { name: 'Lab draft' })).toHaveValue('synthetic draft');
+});
+
+test('explains unknown routes and offers a canonical recovery URL', () => {
+  window.history.replaceState(null, '', '/unknown/');
+  render(<App />);
+  expect(screen.getByRole('status')).toHaveTextContent('Área não encontrada');
+  expect(screen.getByRole('link', { name: 'Abrir a rota Aprender' })).toHaveAttribute('href', '/fido2-demo/');
 });

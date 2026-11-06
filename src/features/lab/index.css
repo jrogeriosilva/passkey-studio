@@ -100,41 +100,6 @@
   background: oklch(0.62 0.13 255 / 40%);
 }
 
-/* Shared FIDO2 workspace navigation. Keep aligned across the three apps. */
-.ecosystem-nav {
-  display: flex;
-  gap: 8px;
-  padding: 0 0 24px;
-  margin-bottom: 0;
-  border-bottom: 1px solid #303b50;
-}
-.ecosystem-nav a {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  min-height: 64px;
-  padding: 12px 16px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  color: #a3adbf;
-  font-size: 12px;
-  line-height: 1.4;
-  text-decoration: none;
-  transition: background-color 160ms ease, border-color 160ms ease;
-}
-.ecosystem-nav a span:first-child { color: #ebebeb; font-size: 14px; font-weight: 600; }
-.ecosystem-nav a:hover { background: #141928; border-color: #303b50; }
-.ecosystem-nav a[aria-current] { background: #203455; border-color: #45618c; }
-.ecosystem-nav a[aria-current] span:first-child { color: #a9c8ff; }
-.ecosystem-nav a:focus-visible { outline: 2px solid #84b0ff; outline-offset: 3px; }
-@media (max-width: 480px) {
-  .ecosystem-nav { gap: 4px; }
-  .ecosystem-nav a { padding: 10px 8px; }
-  .ecosystem-nav a span:last-child { font-size: 11px; overflow-wrap: anywhere; }
-}
-
 ::selection { background:#203455; color:#ebebeb; }
 :focus-visible { outline:2px solid #84b0ff; outline-offset:3px; }
 select { min-height:44px; }
@@ -154,39 +119,7 @@ input, textarea { caret-color: #84b0ff; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
-/* Common application header across the FIDO2 suite. */
-.suite-header { position: sticky; top: 0; z-index: 40; display: block; background: #0b1120; border-bottom: 1px solid #303b50; }
-.suite-header-inner { max-width: 1024px; min-height: 72px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.suite-brand { display: flex; align-items: center; gap: 12px; min-width: 0; color: #ebebeb; text-decoration: none; }
-.suite-mark { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: #84b0ff; color: #0b1120; }
-.suite-brand-copy { display: flex; flex-direction: column; gap: 2px; }
-.suite-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 20px; letter-spacing: -0.01em; }
-.suite-subtitle { margin: 0; color: #a3adbf; font-size: 12px; line-height: 16px; }
-.suite-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-@media (max-width: 639px) { .suite-subtitle { display: none; } }
-
-/* Keep related tools available without displacing the mobile workspace. */
-.ecosystem-disclosure > summary {
-  cursor: pointer;
-  min-height: 44px;
-  padding: 12px 0;
-  font-size: 14px;
-  color: var(--muted-foreground);
-}
-.ecosystem-disclosure > summary:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-@media (min-width: 640px) {
-  .ecosystem-disclosure > summary { display: none; }
-  .ecosystem-disclosure::details-content { content-visibility: visible; }
-  .ecosystem-disclosure:not([open]) > .ecosystem-nav { display: flex; }
-}
 @media (max-width: 639px), (pointer: coarse) {
-  button, select, summary, .suite-actions a {
-    min-height: 44px;
-    min-width: 44px;
-  }
+  button, select, summary { min-height:44px; min-width:44px; }
 }
-
 }

@@ -86,7 +86,7 @@ export function decodeClientDataJSON(
         ok: false,
         error: "Missing 'type' field in clientDataJSON",
         suggestion:
-          "This doesn't look like clientDataJSON — did you mean to select a different payload type?",
+          "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.",
       };
     }
 
@@ -95,7 +95,7 @@ export function decodeClientDataJSON(
         ok: false,
         error: "Missing 'origin' field in clientDataJSON",
         suggestion:
-          "This doesn't look like clientDataJSON — did you mean to select a different payload type?",
+          "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.",
       };
     }
 

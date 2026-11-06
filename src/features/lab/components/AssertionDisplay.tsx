@@ -26,6 +26,7 @@ interface AssertionDisplayProps {
 
 export default function AssertionDisplay({ assertion }: AssertionDisplayProps) {
   const formatted = {
+    type: 'public-key',
     id: assertion.id,
     rawId: assertion.rawId,
     response: Object.fromEntries(
@@ -34,7 +35,6 @@ export default function AssertionDisplay({ assertion }: AssertionDisplayProps) {
         signature: assertion.response?.signature,
         clientDataJSON: assertion.response?.clientDataJSON,
         userHandle: assertion.response?.userHandle,
-        type: 'public-key',
       }).filter(([, v]) => v !== undefined)
     ),
   }
@@ -48,10 +48,10 @@ export default function AssertionDisplay({ assertion }: AssertionDisplayProps) {
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--success)]/12 text-[var(--success)]">
             <Signature size={14} />
           </span>
-          <h3 className="text-sm font-semibold">Generated Assertion</h3>
+          <h3 className="text-sm font-semibold">Assertion gerada</h3>
           <Badge variant="success">PublicKeyCredential</Badge>
         </div>
-        <CopyButton value={jsonString} label="Copy all" />
+        <CopyButton value={jsonString} label="Copiar tudo" />
       </div>
       <DecoderActions data={formatted} />
       <JsonDisplay data={formatted} maxHeight={600} copyable={false} />

@@ -51,7 +51,7 @@ describe("sample payload round-trip", () => {
   );
 
   it.each(
-    getSamplePayloads().filter((s) => s.id !== "publickeycredential-json")
+    getSamplePayloads().filter((s) => s.format !== "json")
   )("$id: decodes to ok=true via autoDetectAndDecode", (sample) => {
     const fmt = detectAndNormalize(sample.raw);
     expect(fmt.ok).toBe(true);
@@ -127,4 +127,10 @@ describe("sample payload round-trip", () => {
     expect(detectedType).toBe("registration");
     expect(result.ok).toBe(true);
   });
+});
+
+it('authentication JSON preserves signature and nullable userHandle', () => {
+  const sample = getSamplePayloads().find(s => s.id === 'publickeycredential-authentication')!;
+  const result = decodeFullCredential(tryExtractPublicKeyCredential(sample.raw)!);
+  expect(result).toMatchObject({ ok: true, type: 'publicKeyCredential', data: { response: { userHandle: null, signature: expect.any(Uint8Array) } } });
 });

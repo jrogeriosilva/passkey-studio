@@ -34,12 +34,12 @@ interface ParsedAttestation {
 }
 
 const FLAG_LABELS: Record<string, string> = {
-  UP: 'User Present',
-  UV: 'User Verified',
-  BE: 'Backup Eligible',
-  BS: 'Backup State',
-  AT: 'Attested Credential Data',
-  ED: 'Extension Data',
+  UP: 'Presença da pessoa',
+  UV: 'Pessoa verificada',
+  BE: 'Elegível para backup',
+  BS: 'Estado de backup',
+  AT: 'Dados atestados',
+  ED: 'Extensões',
 }
 
 function Section({
@@ -54,7 +54,7 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--background)]/40">
+    <section className="border-t border-[var(--border)]">
       <header className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Icon size={14} className="text-[var(--brand)]" />
@@ -69,8 +69,8 @@ function Section({
 
 function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/60 px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</p>
+    <div className="py-3 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</p>
       <p className="mt-1 text-lg font-semibold leading-tight">{value}</p>
       {hint && <p className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">{hint}</p>}
     </div>
@@ -132,11 +132,12 @@ export default function AttestationObjectDecoder() {
   const handleDecode = () => {
     setError('')
     setParsed(null)
-    if (!input.trim()) { setError('Enter a base64url-encoded attestationObject.'); return }
+    if (!input.trim()) { setError('Informe attestationObject em base64url.'); return }
     try {
       setParsed(parseAttestationObject(input.trim()) as ParsedAttestation)
     } catch (err) {
-      setError(`Failed to parse attestationObject: ${(err as Error).message}`)
+      void err
+      setError('attestationObject inválido. Remova aspas, confira base64url e copie o valor completo ou use Inspecionar para detectar o formato.')
     }
   }
 
@@ -146,10 +147,10 @@ export default function AttestationObjectDecoder() {
   return (
     <div className="flex flex-col gap-5">
       <Field
-        label="Attestation object (base64url)"
+        label="attestationObject (base64url)"
         hint={
           <>
-            Paste the base64url-encoded <InlineCode>attestationObject</InlineCode> from an{' '}
+            Cole em base64url o <InlineCode>attestationObject</InlineCode> de uma resposta{' '}
             <InlineCode>AuthenticatorAttestationResponse</InlineCode>.
           </>
         }
@@ -157,7 +158,7 @@ export default function AttestationObjectDecoder() {
         <Textarea
           value={input}
           onChange={e => { setInput(e.target.value); setError('') }}
-          placeholder="Paste base64url-encoded attestationObject here…"
+          placeholder="Cole attestationObject em base64url…"
           autoGrow
         />
       </Field>
@@ -166,24 +167,24 @@ export default function AttestationObjectDecoder() {
 
       <Button onClick={handleDecode} className="self-start">
         <ScanSearch size={15} />
-        Decode attestationObject
+        Decodificar attestationObject
       </Button>
 
       {parsed ? (
         <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-5 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
           {/* Summary */}
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Attestation format" value={<span className="font-mono">{parsed.fmt}</span>} />
-            <Stat label="Sign count" value={parsed.authData.signCount} />
+            <Stat label="Formato de atestação" value={<span className="font-mono">{parsed.fmt}</span>} />
+            <Stat label="Contador de assinaturas" value={parsed.authData.signCount} />
             <Stat
               label="Flags"
               value={<span className="font-mono">{parsed.authData.flagsByte}</span>}
-              hint={`${activeFlags} of ${Object.keys(parsed.authData.flags).length} set`}
+              hint={`${activeFlags} de ${Object.keys(parsed.authData.flags).length} ativos`}
             />
           </div>
 
           {/* Authenticator data */}
-          <Section icon={Fingerprint} title="Authenticator Data">
+          <Section icon={Fingerprint} title="Dados do autenticador">
             <HexValue label="RP ID hash (SHA-256)" value={parsed.authData.rpIdHash} />
 
             <div className="flex flex-col gap-2">
@@ -194,13 +195,13 @@ export default function AttestationObjectDecoder() {
             {attested && (
               <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                  Attested credential data
+                  Dados da credencial atestada
                 </h4>
                 <HexValue label="AAGUID" value={attested.aaguid} />
-                <HexValue label="Credential ID (hex)" value={attested.credentialId} />
-                <HexValue label="Credential ID (base64url)" value={attested.credentialIdBase64url} />
+                <HexValue label="ID da credencial (hex)" value={attested.credentialId} />
+                <HexValue label="ID da credencial (base64url)" value={attested.credentialIdBase64url} />
                 <div className="flex flex-col gap-1.5">
-                  <Label>Credential public key (COSE)</Label>
+                  <Label>Chave pública (COSE)</Label>
                   <JsonDisplay data={attested.credentialPublicKey} maxHeight={320} />
                 </div>
               </div>
@@ -208,22 +209,22 @@ export default function AttestationObjectDecoder() {
 
             {Boolean(parsed.authData.extensions) && (
               <div className="flex flex-col gap-1.5 border-t border-[var(--border)] pt-4">
-                <Label>Extensions</Label>
+                <Label>Extensões</Label>
                 <JsonDisplay data={parsed.authData.extensions} maxHeight={320} />
               </div>
             )}
           </Section>
 
           {/* Attestation statement */}
-          <Section icon={FileKey2} title="Attestation Statement">
+          <Section icon={FileKey2} title="Declaração de atestação">
             <JsonDisplay data={parsed.attStmt} maxHeight={400} />
           </Section>
 
           {/* Full JSON */}
           <Section
             icon={Braces}
-            title="Complete Structure"
-            action={<CopyButton value={JSON.stringify(parsed, null, 2)} label="Copy all" size="xs" />}
+            title="Estrutura completa"
+            action={<CopyButton value={JSON.stringify(parsed, null, 2)} label="Copiar tudo" size="xs" />}
           >
             <JsonDisplay data={parsed} maxHeight={400} copyable={false} />
           </Section>
@@ -231,8 +232,8 @@ export default function AttestationObjectDecoder() {
       ) : (
         <EmptyState
           icon={<ScanSearch size={18} />}
-          title="Nothing decoded yet"
-          description="Paste an attestationObject above and press Decode to inspect its format, flags, credential ID and public key."
+          title="Aguardando entrada"
+          description="Informe attestationObject e use Decodificar para examinar os campos."
         />
       )}
     </div>
