@@ -86,7 +86,7 @@ export function decodeClientDataJSON(
         ok: false,
         error: "Missing 'type' field in clientDataJSON",
         suggestion:
-          "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.",
+          "Check the field structure and paste the full payload. The type is detected automatically.",
       };
     }
 
@@ -95,7 +95,7 @@ export function decodeClientDataJSON(
         ok: false,
         error: "Missing 'origin' field in clientDataJSON",
         suggestion:
-          "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.",
+          "Check the field structure and paste the full payload. The type is detected automatically.",
       };
     }
 

@@ -20,9 +20,9 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
 
   const meta: [string, string | undefined][] = [
     ['RP ID', credential.rpId],
-    ['Pessoa', credential.userName || credential.userId],
-    ['ID da pessoa', credential.userId],
-    ['Criada em', credential.createdAt ? new Date(credential.createdAt).toLocaleString('pt-BR') : undefined],
+    ['User', credential.userName || credential.userId],
+    ['User ID', credential.userId],
+    ['Created at', credential.createdAt ? new Date(credential.createdAt).toLocaleString('en-US') : undefined],
   ]
 
   return (
@@ -50,7 +50,7 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
               {credential.id}
             </span>
             <Badge variant="secondary" className="font-mono">{credential.algorithm}</Badge>
-            <Badge variant={isSimulated ? 'warning' : 'brand'}>{isSimulated ? 'Simulada' : 'Hardware'}</Badge>
+            <Badge variant={isSimulated ? 'warning' : 'brand'}>{isSimulated ? 'Simulated' : 'Hardware'}</Badge>
           </div>
 
           <dl className="mt-2.5 grid grid-cols-1 gap-x-6 gap-y-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
@@ -72,13 +72,13 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
             value={JSON.stringify(publicCredential(credential), null, 2)}
             size="icon-sm"
             variant="ghost"
-            title="Copiar JSON público da credencial"
+            title="Copy public credential JSON"
           />
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={onDelete}
-            title="Excluir credencial"
+            title="Delete credential"
             className="text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/10 hover:text-[var(--destructive)]"
           >
             <Trash2 size={14} />
@@ -97,7 +97,7 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
               size={13}
               className={cn('transition-transform duration-200', expanded && 'rotate-90')}
             />
-            Chave pública (JWK)
+            Public key (JWK)
           </button>
           {expanded && (
             <div className="px-4 pb-3 animate-in fade-in-0 duration-200">
@@ -119,14 +119,14 @@ export default function CredentialManager({ refreshKey }: Props) {
   }, [refreshKey])
 
   const handleDelete = (id: string) => {
-    if (!confirm('Excluir esta credencial?')) return
-    if (!deleteCredential(id)) { setError('Não foi possível excluir a credencial.'); return }
+    if (!confirm('Delete this credential?')) return
+    if (!deleteCredential(id)) { setError('Could not delete the credential.'); return }
     setCredentials(getCredentials())
   }
 
   const handleClearAll = () => {
-    if (!confirm('Excluir TODAS as credenciais?')) return
-    if (!clearAllCredentials()) { setError('Não foi possível excluir as credenciais.'); return }
+    if (!confirm('Delete ALL credentials?')) return
+    if (!clearAllCredentials()) { setError('Could not delete credentials.'); return }
     setCredentials([])
   }
 
@@ -134,8 +134,8 @@ export default function CredentialManager({ refreshKey }: Props) {
     return (
       <EmptyState
         icon={<Database size={18} />}
-        title="Nenhuma credencial armazenada"
-        description="Crie uma credencial na aba Criar credencial para ver seus metadados e chave pública."
+        title="No stored credentials"
+        description="Create a credential in the Create credential tab to view its metadata and public key."
       />
     )
   }
@@ -146,11 +146,11 @@ export default function CredentialManager({ refreshKey }: Props) {
       <div className="flex items-center justify-between">
         <span className="text-xs text-[var(--muted-foreground)]">
           <span className="font-semibold text-[var(--foreground)]">{credentials.length}</span>
-          {' '}{credentials.length === 1 ? 'credencial armazenada' : 'credenciais armazenadas'}
+          {' '}{credentials.length === 1 ? 'stored credential' : 'stored credentials'}
         </span>
         <Button variant="destructive" size="sm" onClick={handleClearAll}>
           <Trash2 size={13} />
-          Excluir todas
+          Delete all
         </Button>
       </div>
       {credentials.map(c => (

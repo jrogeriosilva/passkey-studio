@@ -1,7 +1,7 @@
 import { createElement, Fragment } from 'react';
 import type { ReactNode } from 'react';
 import type { Actor, Ceremony, CeremonyDefinition, Mode, Screen, Step } from './types.ts';
-import type { Translations } from './i18n.ts';
+import type { Translations } from './content.ts';
 // Template interpolation produces React children, never an HTML string.
 function code(strings: TemplateStringsArray, ...values: ReactNode[]): ReactNode {
     return createElement(Fragment, null, ...strings.flatMap((text, i) => [text, values[i]]));

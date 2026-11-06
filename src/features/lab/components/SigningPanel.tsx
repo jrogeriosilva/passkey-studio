@@ -83,15 +83,15 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
       let config: Record<string, unknown>
       try {
         config = JSON.parse(jsonInput)
-      } catch { throw new Error('JSON inválido. Confira aspas e vírgulas ou restaure o exemplo.') }
-      if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('As opções devem ser um objeto JSON.')
+      } catch { throw new Error('Invalid JSON. Check quotes and commas, or restore the sample.') }
+      if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('Options must be a JSON object.')
 
       const challenge = config.challenge as string
-      if (!challenge) throw new Error('Informe o challenge.')
-      if (mode === 'simulated' && !selectedCredentialId) throw new Error('Selecione uma credencial simulada.')
+      if (!challenge) throw new Error('Enter a challenge.')
+      if (mode === 'simulated' && !selectedCredentialId) throw new Error('Select a simulated credential.')
 
       const credential = credentials.find(c => c.id === selectedCredentialId)
-      if (mode === 'simulated' && !credential) throw new Error('Credencial não encontrada.')
+      if (mode === 'simulated' && !credential) throw new Error('Credential not found.')
 
       let assertion: AssertionData
 
@@ -99,14 +99,14 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
         assertion = await getAssertion(config) as AssertionData
       } else {
         const current = getCredentialById(credential!.id)
-        if (!current) throw new Error('A credencial foi excluída. Escolha outra.')
+        if (!current) throw new Error('The credential was deleted. Choose another.')
         const count = (current.signCount ?? 0) + 1
-        if (count > 0xffffffff) throw new Error('Contador esgotado. Crie outra credencial de teste.')
+        if (count > 0xffffffff) throw new Error('Counter exhausted. Create another test credential.')
         assertion = await createSimulatedAssertion({ challenge, credential: current, rpId: current.rpId, signCount: count }) as AssertionData
-        if (!updateSignCount(current.id, count)) throw new Error('Não foi possível salvar o contador. Nenhuma resposta foi publicada.')
+        if (!updateSignCount(current.id, count)) throw new Error('Could not save the counter. No response was published.')
       }
 
-      setSuccess('Assertion gerada.')
+      setSuccess('Assertion generated.')
       onAssertionGenerated?.(assertion)
     } catch (err) {
       setError(labError(err))
@@ -120,36 +120,36 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
   return (
     <div className="flex flex-col gap-5" onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); if (!loading) void handleSign() } }}>
       <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" onClick={() => setJsonInput(JSON.stringify(DEFAULT_JSON, null, 2))}>Restaurar exemplo</Button>
-        <Button variant="ghost" onClick={() => { try { const value = JSON.parse(jsonInput); value.challenge = base64url.encode(crypto.getRandomValues(new Uint8Array(32))); setJsonInput(JSON.stringify(value, null, 2)) } catch { setError('Corrija o JSON antes de gerar um challenge.') } }}>Novo challenge</Button>
+        <Button variant="ghost" onClick={() => setJsonInput(JSON.stringify(DEFAULT_JSON, null, 2))}>Restore sample</Button>
+        <Button variant="ghost" onClick={() => { try { const value = JSON.parse(jsonInput); value.challenge = base64url.encode(crypto.getRandomValues(new Uint8Array(32))); setJsonInput(JSON.stringify(value, null, 2)) } catch { setError('Fix the JSON before generating a challenge.') } }}>New challenge</Button>
       </div>
       <Field
-        label="Opções de autenticação (JSON)"
+        label="Authentication options (JSON)"
         hint={
           <>
-            Objeto <InlineCode>PublicKeyCredentialRequestOptions</InlineCode>.
-            O campo <InlineCode>challenge</InlineCode> é obrigatório. Quando{' '}
-            <InlineCode>allowCredentials</InlineCode> coincide com uma credencial armazenada, ela é selecionada automaticamente. Você pode alterar a seleção.
+            <InlineCode>PublicKeyCredentialRequestOptions</InlineCode> object.
+            The field <InlineCode>challenge</InlineCode> is required. When{' '}
+            <InlineCode>allowCredentials</InlineCode> matches a stored credential, it is selected automatically. You can change the selection.
           </>
         }
       >
-        <CodeEditor label="Opções de autenticação (JSON)"
+        <CodeEditor label="Authentication options (JSON)"
           language="json"
           value={jsonInput}
           onChange={e => setJsonInput(e.target.value)}
-          placeholder="Cole as opções PublicKeyCredentialRequestOptions em JSON…"
+          placeholder="Paste PublicKeyCredentialRequestOptions as JSON…"
           minHeight={180}
           maxHeight={400}
         />
       </Field>
 
       <Field
-        label="Credencial"
+        label="Credential"
         htmlFor="signing-credential"
         required
         hint={
           noCredentials
-            ? `Nenhuma credencial neste modo. Crie uma na aba Criar credencial.`
+            ? `No credentials in this mode. Create one in the Create credential tab.`
             : undefined
         }
       >
@@ -163,7 +163,7 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
             disabled={noCredentials}
           >
             <option value="">
-              {noCredentials ? `Nenhuma credencial neste modo` : 'Selecione uma credencial…'}
+              {noCredentials ? `No credentials in this mode` : 'Select a credential…'}
             </option>
             {credentials.map(c => (
               <option key={c.id} value={c.id}>
@@ -182,11 +182,11 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
           disabled={loading || (mode === 'simulated' && !selectedCredentialId)}
         >
           {loading ? <LoaderCircle size={15} className="animate-spin" /> : <Signature size={15} />}
-          {loading ? 'Assinando…' : 'Assinar challenge'}
+          {loading ? 'Signing…' : 'Sign challenge'}
         </Button>
         {mode === 'hardware' && (
           <span className="text-xs text-[var(--muted-foreground)]">
-            O navegador solicitará o autenticador.
+            The browser will prompt for the authenticator.
           </span>
         )}
       </div>

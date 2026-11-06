@@ -20,7 +20,7 @@ export default function Base64Decoder() {
     setError('')
     setOutputIsHex(false)
     setDecodedBytes(null)
-    if (!input.trim()) { setError('Informe base64url para decodificar.'); return }
+    if (!input.trim()) { setError('Enter base64url to decode.'); return }
     try {
       const buffer = base64url.decode(input.trim())
       setDecodedBytes(buffer.byteLength)
@@ -31,7 +31,7 @@ export default function Base64Decoder() {
       }
       catch { setOutput(Array.from(new Uint8Array(buffer), byte => byte.toString(16).padStart(2, '0')).join('')); setOutputIsHex(true) }
     } catch {
-      setError('Base64url inválido. Remova aspas e confira a entrada.')
+      setError('Invalid base64url. Remove quotes and check the input.')
     }
   }
 
@@ -39,11 +39,11 @@ export default function Base64Decoder() {
     setError('')
     setOutputIsHex(false)
     setDecodedBytes(null)
-    if (!input.trim()) { setError('Informe o texto para codificar.'); return }
+    if (!input.trim()) { setError('Enter text to encode.'); return }
     try {
       setOutput(base64url.encode(new TextEncoder().encode(input.trim())))
     } catch {
-      setError('Não foi possível codificar o texto.')
+      setError('Could not encode the text.')
     }
   }
 
@@ -60,7 +60,7 @@ export default function Base64Decoder() {
       {/* Input / Output panes */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-stretch">
         <Field
-          label="Entrada"
+          label="Input"
           htmlFor="base64-input"
           action={input ? <CopyButton value={input} size="xs" variant="ghost" /> : undefined}
         >
@@ -68,7 +68,7 @@ export default function Base64Decoder() {
             id="base64-input"
             value={input}
             onChange={e => { setInput(e.target.value); setError('') }}
-            placeholder="Digite texto para codificar ou cole base64url para decodificar…"
+            placeholder="Type text to encode or paste base64url to decode…"
             className="min-h-[200px] flex-1"
             autoGrow
           />
@@ -80,7 +80,7 @@ export default function Base64Decoder() {
             size="icon"
             onClick={handleSwap}
             disabled={!input && !output}
-            title="Trocar entrada e saída"
+            title="Swap input and output"
             className="rounded-full"
           >
             <ArrowDownUp size={14} className="lg:hidden" />
@@ -89,13 +89,13 @@ export default function Base64Decoder() {
         </div>
 
         <Field
-          label="Saída"
+          label="Output"
           action={output ? <CopyButton value={output} size="xs" variant="ghost" /> : undefined}
         >
           <CodeBlock
             value={output}
             language="auto"
-            placeholder="O resultado aparecerá aqui."
+            placeholder="The result will appear here."
             className="min-h-[200px] flex-1"
             autoGrow
             maxHeight={320}
@@ -103,27 +103,27 @@ export default function Base64Decoder() {
         </Field>
       </div>
 
-      {decodedBytes !== null && <p role="status" className="text-sm text-[var(--muted-foreground)]">{decodedBytes} {decodedBytes === 1 ? 'byte decodificado' : 'bytes decodificados'}</p>}
+      {decodedBytes !== null && <p role="status" className="text-sm text-[var(--muted-foreground)]">{decodedBytes} {decodedBytes === 1 ? 'decoded byte' : 'decoded bytes'}</p>}
       {error && <Alert variant="destructive">{error}</Alert>}
-      {outputIsHex && <Alert variant="info">Os bytes não são texto UTF-8. O resultado está em hexadecimal.</Alert>}
+      {outputIsHex && <Alert variant="info">The bytes are not UTF-8 text. The result is shown in hexadecimal.</Alert>}
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={handleDecode}>
           <ArrowRightLeft size={14} />
-          Decodificar base64url → texto
+          Decode base64url → text
         </Button>
         <Button variant="secondary" onClick={handleEncode}>
-          Codificar texto → base64url
+          Encode text → base64url
         </Button>
       </div>
 
       {/* Info */}
       <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
-        Usa o alfabeto base64url da RFC 4648 §5:{' '}
+        Uses the base64url alphabet from RFC 4648 §5:{' '}
         <InlineCode>+</InlineCode> → <InlineCode>-</InlineCode>,{' '}
-        <InlineCode>/</InlineCode> → <InlineCode>_</InlineCode>, sem padding.
-        FIDO2 e WebAuthn usam essa codificação nos campos binários.
+        <InlineCode>/</InlineCode> → <InlineCode>_</InlineCode>, without padding.
+        FIDO2 and WebAuthn use this encoding for binary fields.
       </p>
     </div>
   )

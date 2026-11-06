@@ -27,7 +27,7 @@ export function autoDetectAndDecode(bytes: ArrayBuffer | Uint8Array): AutoDecode
     if (typeof parsed === "object" && parsed !== null && typeof (parsed as Record<string, unknown>).type === "string") {
       return { detectedType: "clientDataJSON", result: decodePayload("clientDataJSON", bytes) };
     }
-    return { detectedType: "clientDataJSON", result: { ok: false, error: "JSON não reconhecido. Informe clientDataJSON com type, origin e challenge, ou um PublicKeyCredential com rawId e response válidos." } };
+    return { detectedType: "clientDataJSON", result: { ok: false, error: "Unrecognized JSON. Enter clientDataJSON with type, origin and challenge, or a PublicKeyCredential with valid rawId and response." } };
   } catch {
     // not UTF-8 JSON
   }
@@ -59,11 +59,11 @@ export function autoDetectAndDecode(bytes: ArrayBuffer | Uint8Array): AutoDecode
 
 export function payloadTypeLabel(type: PayloadType | "publicKeyCredential"): string {
   switch (type) {
-    case "registration": return "Registro (attestationObject)";
-    case "authentication": return "Autenticação (assertion)";
+    case "registration": return "Registration (attestationObject)";
+    case "authentication": return "Authentication (assertion)";
     case "clientDataJSON": return "clientDataJSON";
     case "authenticatorData": return "authenticatorData";
-    case "raw-cbor": return "CBOR bruto";
+    case "raw-cbor": return "Raw CBOR";
     case "publicKeyCredential": return "PublicKeyCredential";
   }
 }

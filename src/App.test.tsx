@@ -12,17 +12,17 @@ test('switches tools inside the same React application and responds to history n
   render(<App />);
   const header = screen.getByRole('banner');
   expect(screen.getByText('Learn feature')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  fireEvent.click(screen.getByRole('link', { name: /Experiment/ }));
   expect(window.location.pathname).toBe('/fido2-lab/');
   expect(screen.getByText('Lab feature')).toBeInTheDocument();
   expect(screen.getByRole('banner')).toBe(header);
-  expect(screen.getByRole('link', { name: /Experimentar/ })).toHaveAttribute('aria-current', 'page');
-  fireEvent.click(screen.getByRole('link', { name: /Inspecionar/ }));
+  expect(screen.getByRole('link', { name: /Experiment/ })).toHaveAttribute('aria-current', 'page');
+  fireEvent.click(screen.getByRole('link', { name: /Inspect/ }));
   expect(screen.getByText('Inspector feature')).toBeInTheDocument();
   window.history.replaceState(null, '', '/fido2-demo/');
   fireEvent.popState(window);
   expect(screen.getByText('Learn feature')).toBeInTheDocument();
-  expect(document.title).toBe('Aprender · Passkey Studio');
+  expect(document.title).toBe('Learn · Passkey Studio');
 });
 
 test('supports direct entry to a tool and preserves modified link clicks', () => {
@@ -30,7 +30,7 @@ test('supports direct entry to a tool and preserves modified link clicks', () =>
   render(<App />);
   expect(screen.getByText('Inspector feature')).toBeInTheDocument();
   const push = vi.spyOn(window.history, 'pushState');
-  const link = screen.getByRole('link', { name: /Experimentar/ });
+  const link = screen.getByRole('link', { name: /Experiment/ });
   link.addEventListener('click', event => event.preventDefault(), { once: true });
   fireEvent.click(link, { ctrlKey: true });
   expect(push).not.toHaveBeenCalled();
@@ -44,7 +44,7 @@ test('keeps navigation and history inside the GitHub Pages project base', () => 
   render(<App />);
   expect(screen.getByText('Inspector feature')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Passkey Studio' })).toHaveAttribute('href', '/passkey-studio/');
-  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  fireEvent.click(screen.getByRole('link', { name: /Experiment/ }));
   expect(window.location.pathname).toBe('/passkey-studio/fido2-lab/');
   expect(screen.getByText('Lab feature')).toBeInTheDocument();
   window.history.replaceState(null, '', '/passkey-studio/fido2-demo/');
@@ -55,19 +55,19 @@ test('keeps navigation and history inside the GitHub Pages project base', () => 
 
 test('preserves drafts across tools and keeps query and hash on internal navigation', () => {
   render(<App />);
-  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  fireEvent.click(screen.getByRole('link', { name: /Experiment/ }));
   fireEvent.change(screen.getByRole('textbox', { name: 'Lab draft' }), { target: { value: 'synthetic draft' } });
-  fireEvent.click(screen.getByRole('link', { name: /Aprender/ }));
+  fireEvent.click(screen.getByRole('link', { name: /Learn/ }));
   fireEvent.click(screen.getByRole('link', { name: 'Example link' }));
   expect(window.location.search).toBe('?sample=clientdata-create');
   expect(window.location.hash).toBe('#top');
-  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  fireEvent.click(screen.getByRole('link', { name: /Experiment/ }));
   expect(screen.getByRole('textbox', { name: 'Lab draft' })).toHaveValue('synthetic draft');
 });
 
 test('explains unknown routes and offers a canonical recovery URL', () => {
   window.history.replaceState(null, '', '/unknown/');
   render(<App />);
-  expect(screen.getByRole('status')).toHaveTextContent('Área não encontrada');
-  expect(screen.getByRole('link', { name: 'Abrir a rota Aprender' })).toHaveAttribute('href', '/fido2-demo/');
+  expect(screen.getByRole('status')).toHaveTextContent('Area not found');
+  expect(screen.getByRole('link', { name: 'Open the Learn area' })).toHaveAttribute('href', '/fido2-demo/');
 });

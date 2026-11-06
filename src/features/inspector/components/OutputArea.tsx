@@ -43,12 +43,12 @@ function CopyAllButton({ tree }: { tree: Record<string, unknown> }) {
     <div className="flex flex-col items-start gap-1">
     <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
       {copied ? (
-        <><Check className="size-3.5 text-success" />Copiado</>
+        <><Check className="size-3.5 text-success" />Copied</>
       ) : (
-        <><Copy className="size-3.5" />Copiar tudo</>
+        <><Copy className="size-3.5" />Copy all</>
       )}
     </Button>
-    {copyError && <p role="alert" className="text-xs text-destructive">Falha ao copiar. Selecione a saída e copie manualmente.</p>}
+    {copyError && <p role="alert" className="text-xs text-destructive">Copy failed. Select the output and copy it manually.</p>}
     </div>
   )
 }
@@ -72,7 +72,7 @@ function OutputShell({ children, badge, actions, tone = "default" }: OutputShell
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Braces className="size-4 text-muted-foreground" aria-hidden="true" />
           <h2 id="output-heading" className="text-sm font-medium">
-            Resultado
+            Result
           </h2>
           {badge}
         </div>
@@ -94,9 +94,9 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
             <ScanSearch className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-medium">Aguardando entrada</p>
+            <p className="text-sm font-medium">Waiting for input</p>
             <p className="mt-1 max-w-sm text-sm text-pretty text-muted-foreground">
-              Os campos decodificados aparecerão aqui.
+              Decoded fields will appear here.
             </p>
           </div>
         </div>
@@ -144,15 +144,15 @@ export function OutputArea({ decodeResult, detectedType }: OutputAreaProps) {
         )
       }
       actions={<div className="flex flex-wrap items-center gap-2">
-        <label className="text-xs">Bytes <select aria-label="Formato dos bytes" value={encoding} onChange={e => setEncoding(e.target.value as "hex" | "base64url")}><option>hex</option><option>base64url</option></select></label>
-        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: true, key: v.key + 1 }))}>Expandir tudo</Button>
-        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: false, key: v.key + 1 }))}>Recolher tudo</Button>
+        <label className="text-xs">Bytes <select aria-label="Byte format" value={encoding} onChange={e => setEncoding(e.target.value as "hex" | "base64url")}><option>hex</option><option>base64url</option></select></label>
+        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: true, key: v.key + 1 }))}>Expand all</Button>
+        <Button variant="ghost" size="sm" onClick={() => setExpansion(v => ({ all: false, key: v.key + 1 }))}>Collapse all</Button>
         <CopyAllButton tree={tree} />
       </div>}
     >
       {(auth || client) && <dl className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border px-4 py-3 text-xs">
-        {client && <div><dt className="text-muted-foreground">Origem · cerimônia</dt><dd className="break-all">{client.origin} · {client.type}</dd></div>}
-        {auth && <><div><dt className="text-muted-foreground">Contador</dt><dd>{auth.signCount}</dd></div><div><dt className="text-muted-foreground">Flags ativas</dt><dd>{Object.entries(auth.flags).filter(([key, value]) => key !== 'rawByte' && value === true).map(([key]) => key.toUpperCase()).join(' · ') || 'Nenhuma'}</dd></div></>}
+        {client && <div><dt className="text-muted-foreground">Origin · ceremony</dt><dd className="break-all">{client.origin} · {client.type}</dd></div>}
+        {auth && <><div><dt className="text-muted-foreground">Counter</dt><dd>{auth.signCount}</dd></div><div><dt className="text-muted-foreground">Active flags</dt><dd>{Object.entries(auth.flags).filter(([key, value]) => key !== 'rawByte' && value === true).map(([key]) => key.toUpperCase()).join(' · ') || 'None'}</dd></div></>}
       </dl>}
       <div className="overflow-x-auto px-3 py-3 sm:px-4">
         <DecodeTreeView key={expansion.key} tree={tree} expandAll={expansion.all} />

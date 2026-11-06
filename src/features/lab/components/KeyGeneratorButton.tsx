@@ -32,10 +32,10 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
     setFlash(null)
     try {
       const keyPair = await generateKeyPairForStorage(algorithm)
-      if (!saveGeneratedKey(keyPair)) throw new Error('Não foi possível salvar a chave. Confira o armazenamento do navegador e tente novamente.')
+      if (!saveGeneratedKey(keyPair)) throw new Error('Could not save the key. Check browser storage and try again.')
       refresh()
       setShowKeys(true)
-      setFlash(`${algorithm} par de chaves gerado`)
+      setFlash(`${algorithm} key pair generated`)
       setTimeout(() => setFlash(null), 1500)
       onKeyGenerated?.(keyPair)
     } catch (err) {
@@ -46,8 +46,8 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
   }
 
   const handleDelete = (id: string) => {
-    if (!confirm('Excluir esta chave simulada?')) return
-    if (!deleteGeneratedKey(id)) { setError('Não foi possível excluir a chave.'); return }
+    if (!confirm('Delete this simulated key?')) return
+    if (!deleteGeneratedKey(id)) { setError('Could not delete the key.'); return }
     refresh()
     onKeyGenerated?.()
   }
@@ -63,7 +63,7 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
           onChange={e => setAlgorithm(e.target.value)}
           wrapperClassName="sm:w-56"
           className="font-mono"
-          aria-label="Algoritmo da chave"
+          aria-label="Key algorithm"
         >
           <option value="ES256">ES256 · ECDSA P-256</option>
           <option value="RS256">RS256 · RSA 2048</option>
@@ -71,7 +71,7 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
 
         <Button variant="secondary" onClick={handleGenerate} disabled={loading} className="h-9">
           {loading ? <LoaderCircle size={14} className="animate-spin" /> : <KeyRound size={14} />}
-          {loading ? 'Gerando…' : 'Gerar par de chaves'}
+          {loading ? 'Generating…' : 'Generate key pair'}
         </Button>
 
         <div className="flex items-center gap-2 sm:ml-auto">
@@ -95,23 +95,23 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
               size={13}
               className={cn('transition-transform duration-200', showKeys && 'rotate-90')}
             />
-            {keys.length} chave{keys.length !== 1 ? 's' : ''}
+            {keys.length} key{keys.length !== 1 ? 's' : ''}
             {keys.length > 0 && (
-              <span className="text-[var(--muted-foreground)]/70">· {available} disponíveis</span>
+              <span className="text-[var(--muted-foreground)]/70">· {available} available</span>
             )}
           </Button>
         </div>
       </div>
 
-      {keys.length > 0 && <Button variant="ghost" onClick={() => { if (confirm('Excluir todas as chaves simuladas?')) { if (clearAllGeneratedKeys()) { refresh(); onKeyGenerated?.() } else setError('Não foi possível excluir as chaves.') } }}>Excluir todas as chaves</Button>}
+      {keys.length > 0 && <Button variant="ghost" onClick={() => { if (confirm('Delete all simulated keys?')) { if (clearAllGeneratedKeys()) { refresh(); onKeyGenerated?.() } else setError('Could not delete keys.') } }}>Delete all keys</Button>}
       {/* Key list */}
       {showKeys && (
         <div className="flex flex-col gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
           {keys.length === 0 ? (
             <EmptyState
               icon={<KeyRound size={18} />}
-              title="Nenhum par de chaves"
-              description="Gere um par de chaves. Chaves disponíveis podem ser vinculadas a uma credencial simulada."
+              title="No key pairs"
+              description="Generate a key pair. Available keys can be linked to a simulated credential."
               className="py-8"
             />
           ) : (
@@ -137,11 +137,11 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
                     </span>
                     <Badge variant="secondary" className="font-mono">{key.algorithm}</Badge>
                     <Badge variant={key.used ? 'outline' : 'success'}>
-                      {key.used ? 'Usada' : 'Disponível'}
+                      {key.used ? 'Used' : 'Available'}
                     </Badge>
                   </div>
                   <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
-                    Criada em {new Date(key.createdAt).toLocaleString('pt-BR')}
+                    Created at {new Date(key.createdAt).toLocaleString('en-US')}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-0.5">
@@ -149,13 +149,13 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
                     value={JSON.stringify(publicCredential(key), null, 2)}
                     size="icon-sm"
                     variant="ghost"
-                    title="Copiar JSON público da chave"
+                    title="Copy public key JSON"
                   />
                   <Button
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => handleDelete(key.id)}
-                    title="Excluir chave"
+                    title="Delete key"
                     className="text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/10 hover:text-[var(--destructive)]"
                   >
                     <Trash2 size={14} />

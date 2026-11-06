@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef } from "react"
 import { HeroIntro } from "@/inspector/components/HeroIntro"
 import { PayloadInput } from "@/inspector/components/PayloadInput"
 import { OutputArea } from "@/inspector/components/OutputArea"
-import { EducationalContent } from "@/inspector/components/EducationalContent"
 import { decodeFullCredential } from "@/inspector/lib/decode-orchestrator"
 import { autoDetectAndDecode } from "@/inspector/lib/payload-type-detection"
 import { tryExtractPublicKeyCredential } from "@/inspector/lib/publickeycredential-input"
@@ -63,7 +62,6 @@ function App({ incomingInput }: { incomingInput?: { value: string; key: number }
             detectedType={detectedType}
           />
         </div>
-        <EducationalContent />
       </main>
     </div>
   )

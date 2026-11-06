@@ -34,12 +34,12 @@ interface ParsedAttestation {
 }
 
 const FLAG_LABELS: Record<string, string> = {
-  UP: 'Presença da pessoa',
-  UV: 'Pessoa verificada',
-  BE: 'Elegível para backup',
-  BS: 'Estado de backup',
-  AT: 'Dados atestados',
-  ED: 'Extensões',
+  UP: 'User presence',
+  UV: 'User verified',
+  BE: 'Backup eligible',
+  BS: 'Backup state',
+  AT: 'Attested data',
+  ED: 'Extensions',
 }
 
 function Section({
@@ -132,12 +132,12 @@ export default function AttestationObjectDecoder() {
   const handleDecode = () => {
     setError('')
     setParsed(null)
-    if (!input.trim()) { setError('Informe attestationObject em base64url.'); return }
+    if (!input.trim()) { setError('Enter an attestationObject in base64url.'); return }
     try {
       setParsed(parseAttestationObject(input.trim()) as ParsedAttestation)
     } catch (err) {
       void err
-      setError('attestationObject inválido. Remova aspas, confira base64url e copie o valor completo ou use Inspecionar para detectar o formato.')
+      setError('Invalid attestationObject. Remove quotes, check base64url and copy the full value, or use Inspect to detect the format.')
     }
   }
 
@@ -150,7 +150,7 @@ export default function AttestationObjectDecoder() {
         label="attestationObject (base64url)"
         hint={
           <>
-            Cole em base64url o <InlineCode>attestationObject</InlineCode> de uma resposta{' '}
+            Paste the base64url <InlineCode>attestationObject</InlineCode> from an{' '}
             <InlineCode>AuthenticatorAttestationResponse</InlineCode>.
           </>
         }
@@ -158,7 +158,7 @@ export default function AttestationObjectDecoder() {
         <Textarea
           value={input}
           onChange={e => { setInput(e.target.value); setError('') }}
-          placeholder="Cole attestationObject em base64url…"
+          placeholder="Paste an attestationObject in base64url…"
           autoGrow
         />
       </Field>
@@ -167,24 +167,24 @@ export default function AttestationObjectDecoder() {
 
       <Button onClick={handleDecode} className="self-start">
         <ScanSearch size={15} />
-        Decodificar attestationObject
+        Decode attestationObject
       </Button>
 
       {parsed ? (
         <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-5 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
           {/* Summary */}
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Formato de atestação" value={<span className="font-mono">{parsed.fmt}</span>} />
-            <Stat label="Contador de assinaturas" value={parsed.authData.signCount} />
+            <Stat label="Attestation format" value={<span className="font-mono">{parsed.fmt}</span>} />
+            <Stat label="Signature counter" value={parsed.authData.signCount} />
             <Stat
               label="Flags"
               value={<span className="font-mono">{parsed.authData.flagsByte}</span>}
-              hint={`${activeFlags} de ${Object.keys(parsed.authData.flags).length} ativos`}
+              hint={`${activeFlags} of ${Object.keys(parsed.authData.flags).length} active`}
             />
           </div>
 
           {/* Authenticator data */}
-          <Section icon={Fingerprint} title="Dados do autenticador">
+          <Section icon={Fingerprint} title="Authenticator data">
             <HexValue label="RP ID hash (SHA-256)" value={parsed.authData.rpIdHash} />
 
             <div className="flex flex-col gap-2">
@@ -195,13 +195,13 @@ export default function AttestationObjectDecoder() {
             {attested && (
               <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                  Dados da credencial atestada
+                  Attested credential data
                 </h4>
                 <HexValue label="AAGUID" value={attested.aaguid} />
-                <HexValue label="ID da credencial (hex)" value={attested.credentialId} />
-                <HexValue label="ID da credencial (base64url)" value={attested.credentialIdBase64url} />
+                <HexValue label="Credential ID (hex)" value={attested.credentialId} />
+                <HexValue label="Credential ID (base64url)" value={attested.credentialIdBase64url} />
                 <div className="flex flex-col gap-1.5">
-                  <Label>Chave pública (COSE)</Label>
+                  <Label>Public key (COSE)</Label>
                   <JsonDisplay data={attested.credentialPublicKey} maxHeight={320} />
                 </div>
               </div>
@@ -209,22 +209,22 @@ export default function AttestationObjectDecoder() {
 
             {Boolean(parsed.authData.extensions) && (
               <div className="flex flex-col gap-1.5 border-t border-[var(--border)] pt-4">
-                <Label>Extensões</Label>
+                <Label>Extensions</Label>
                 <JsonDisplay data={parsed.authData.extensions} maxHeight={320} />
               </div>
             )}
           </Section>
 
           {/* Attestation statement */}
-          <Section icon={FileKey2} title="Declaração de atestação">
+          <Section icon={FileKey2} title="Attestation statement">
             <JsonDisplay data={parsed.attStmt} maxHeight={400} />
           </Section>
 
           {/* Full JSON */}
           <Section
             icon={Braces}
-            title="Estrutura completa"
-            action={<CopyButton value={JSON.stringify(parsed, null, 2)} label="Copiar tudo" size="xs" />}
+            title="Full structure"
+            action={<CopyButton value={JSON.stringify(parsed, null, 2)} label="Copy all" size="xs" />}
           >
             <JsonDisplay data={parsed} maxHeight={400} copyable={false} />
           </Section>
@@ -232,8 +232,8 @@ export default function AttestationObjectDecoder() {
       ) : (
         <EmptyState
           icon={<ScanSearch size={18} />}
-          title="Aguardando entrada"
-          description="Informe attestationObject e use Decodificar para examinar os campos."
+          title="Waiting for input"
+          description="Enter an attestationObject and select Decode to examine its fields."
         />
       )}
     </div>

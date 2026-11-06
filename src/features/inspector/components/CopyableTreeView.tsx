@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Copy, Check, ChevronDown, ChevronRight } from "lucide-react"
 
 const FIELD_HELP: Record<string, string> = {
-  up: "presença da pessoa", uv: "pessoa verificada", be: "elegível para backup", bs: "estado de backup", at: "dados atestados", ed: "extensões",
+  up: "user presence", uv: "user verified", be: "backup eligible", bs: "backup state", at: "attested data", ed: "extensions",
 };
 const COSE_HELP: Record<string, string> = { "1": "kty", "3": "alg", "-1": "crv / n", "-2": "x / e", "-3": "y" };
 
@@ -36,8 +36,8 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      title={`Copiar ${label}`}
-      aria-label={`Copiar ${label}`}
+      title={`Copy ${label}`}
+      aria-label={`Copy ${label}`}
       className="tree-copy items-center rounded-md border border-border/60 bg-card px-1 py-0.5 text-foreground/70 opacity-0 transition-[opacity,background-color,color] group-hover/line:opacity-100 hover:bg-foreground/10 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none [@media(hover:hover)]:inline-flex"
     >
       {copied ? (
@@ -46,7 +46,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
         <Copy className="size-3.5" />
       )}
     </button>
-    {copyError && <span role="alert" className="text-destructive">Falha na cópia; selecione o valor e copie manualmente.</span>}
+    {copyError && <span role="alert" className="text-destructive">Copy failed. Select the value and copy manually.</span>}
     </span>
   )
 }
@@ -97,7 +97,7 @@ function Toggle({ expanded, onToggle, summary, label }: ToggleProps) {
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      aria-label={`${expanded ? "Recolher" : "Expandir"} ${label}`}
+      aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
       className="inline-flex items-center gap-1 rounded-md px-1 align-middle text-tree-punct transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
     >
       {expanded ? (
@@ -146,8 +146,8 @@ function TreeRow({ label, labelKind, value, expandAll, parentLabel }: TreeRowPro
   } else {
     const count = container.entries.length
     const summary = container.isArray
-      ? `[${count} ${count === 1 ? "item" : "itens"}]`
-      : `{${count} ${count === 1 ? "campo" : "campos"}}`
+      ? `[${count} ${count === 1 ? "item" : "items"}]`
+      : `{${count} ${count === 1 ? "field" : "fields"}}`
     valueNode = (
       <Toggle label={label} expanded={expanded} onToggle={() => setExpanded((v) => !v)} summary={summary} />
     )

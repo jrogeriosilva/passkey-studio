@@ -2,7 +2,7 @@ import { decodeAttestationObject } from '@/inspector/lib/decode-attestation'
 import { bytesToDisplayHex } from '@/inspector/lib/tree-preprocess'
 import { base64url } from './crypto'
 
-/** Reuse the same bounds-checked binary parser as Inspecionar. */
+/** Reuse the same bounds-checked binary parser as Inspect. */
 export function parseAttestationObject(input: string) {
   const result = decodeAttestationObject(base64url.decode(input))
   if (!result.ok) throw new Error(result.error)

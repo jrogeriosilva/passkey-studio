@@ -19,7 +19,7 @@ import JsonDisplay from './JsonDisplay'
 
 const DEFAULT_JSON = {
   rp: { name: 'Passkey Studio', id: window.location.hostname },
-  user: { id: 'dGVzdC11c2Vy', name: 'teste@example.com', displayName: 'Pessoa de teste' },
+  user: { id: 'dGVzdC11c2Vy', name: 'test@example.com', displayName: 'Test user' },
   challenge: 'elDBLGCwRwGCOMRCQkloMmn9PdbaF8YlLzZpEFX9AAUa4uVyDVraNAeL3gkio1IIpfg4HsCjTZI65cm__1BTynLoa4I6oes4avuz5SVHOsZ8leYwbjuHaTdztrlzafnmkKyYlqsor1i4YNlpXlaicavlnQXl-Pkhjeptqu-pQwM',
   pubKeyCredParams: [
     { type: 'public-key', alg: -7 },
@@ -60,25 +60,25 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
       try {
         config = JSON.parse(jsonInput)
       } catch {
-        throw new Error('JSON inválido. Confira aspas, vírgulas e chaves ou restaure o exemplo.')
+        throw new Error('Invalid JSON. Check quotes, commas and braces, or restore the sample.')
       }
-      if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('As opções devem ser um objeto JSON.')
+      if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('Options must be a JSON object.')
 
       const rpId = (config.rp as Record<string, string>)?.id || window.location.hostname
       const rpName = (config.rp as Record<string, string>)?.name || 'Passkey Studio'
       const user = config.user as Record<string, string> | undefined
       const userId = user?.id || 'test-user'
       const userName = user?.name || 'testuser@example.com'
-      const userDisplayName = user?.displayName || 'Pessoa de teste'
+      const userDisplayName = user?.displayName || 'Test user'
       const challengeToUse = config.challenge as string
 
-      if (!challengeToUse) throw new Error('Informe challenge nas opções JSON.')
+      if (!challengeToUse) throw new Error('Enter a challenge in the JSON options.')
 
       let algorithm = 'ES256'
       const params = config.pubKeyCredParams as Array<{ alg: number }> | undefined
       if (params && params.length > 0) {
         const supported = params.find(item => item.alg === -7 || item.alg === -257)
-        if (mode === 'simulated' && !supported) throw new Error('A simulação suporta somente ES256 e RS256. Use hardware para outros algoritmos.')
+        if (mode === 'simulated' && !supported) throw new Error('Simulation supports only ES256 and RS256. Use hardware for other algorithms.')
         algorithm = supported?.alg === -257 ? 'RS256' : 'ES256'
       }
 
@@ -87,7 +87,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
         const credential = {
           id: hwCredential.id,
           type: 'hardware' as const,
-          algorithm: hwCredential.response.publicKeyAlgorithm !== undefined ? parseAlgorithm(hwCredential.response.publicKeyAlgorithm) : 'Desconhecido',
+          algorithm: hwCredential.response.publicKeyAlgorithm !== undefined ? parseAlgorithm(hwCredential.response.publicKeyAlgorithm) : 'Unknown',
           credentialId: hwCredential.rawId,
           response: hwCredential.response,
           rpId,
@@ -97,14 +97,14 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           userDisplayName,
           createdAt: new Date().toISOString(),
         }
-        if (!saveCredential(credential)) throw new Error('Não foi possível salvar. Confira o armazenamento do navegador.')
+        if (!saveCredential(credential)) throw new Error('Could not save. Check browser storage.')
         setResult(hwCredential)
-        setSuccess('Credencial de hardware criada.')
+        setSuccess('Hardware credential created.')
       } else {
         const key = generatedKeys.find(k => k.id === selectedKeyId)
-        if (selectedKeyId && !key) throw new Error('A chave selecionada não está mais disponível. Escolha outra.')
+        if (selectedKeyId && !key) throw new Error('The selected key is no longer available. Choose another.')
         if (key) algorithm = key.algorithm
-        if (params?.length && !params.some(item => item.alg === (algorithm === 'RS256' ? -257 : -7))) throw new Error('O algoritmo da chave não está em pubKeyCredParams. Escolha outra chave ou ajuste as opções.')
+        if (params?.length && !params.some(item => item.alg === (algorithm === 'RS256' ? -257 : -7))) throw new Error('The key algorithm is not in pubKeyCredParams. Choose another key or adjust the options.')
 
         const simCredential = await createSimulatedCredential({
           challenge: challengeToUse,
@@ -131,8 +131,8 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           userDisplayName: simCredential.userDisplayName,
           createdAt: simCredential.createdAt,
         }
-        if (!saveCredential(credential)) throw new Error('Não foi possível salvar. Confira o armazenamento do navegador.')
-        if (key && !markKeyAsUsed(key.id)) throw new Error('Credencial salva, mas não foi possível marcar a chave como usada.')
+        if (!saveCredential(credential)) throw new Error('Could not save. Check browser storage.')
+        if (key && !markKeyAsUsed(key.id)) throw new Error('Credential saved, but the key could not be marked as used.')
         setResult({
           type: 'public-key',
           id: simCredential.id,
@@ -143,7 +143,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
             type: 'public-key',
           },
         })
-        setSuccess(`Credencial simulada criada (${algorithm}).`)
+        setSuccess(`Simulated credential created (${algorithm}).`)
       }
 
       setSelectedKeyId('')
@@ -165,24 +165,24 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           disabled={loading}
         >
           {loading ? <LoaderCircle size={15} className="animate-spin" /> : <KeyRound size={15} />}
-          {loading ? 'Criando…' : `Criar credencial ${mode === 'hardware' ? 'de hardware' : 'simulada'}`}
+          {loading ? 'Creating…' : `Create ${mode === 'hardware' ? 'hardware' : 'simulated'} credential`}
         </Button>
         {mode === 'hardware' && (
           <span className="text-xs text-[var(--muted-foreground)]">
-            O navegador solicitará um autenticador.
+            The browser will prompt for an authenticator.
           </span>
         )}
       </div>
 
       {mode === 'simulated' && (
-        <details><summary className="cursor-pointer min-h-11 py-3 text-sm">Usar chave pré-gerada (opcional)</summary>
+        <details><summary className="cursor-pointer min-h-11 py-3 text-sm">Use a pre-generated key (optional)</summary>
         <Field
-          label="Chave pré-gerada (opcional)"
+          label="Pre-generated key (optional)"
           htmlFor="creation-key"
           hint={
             noKeys
-              ? 'Uma chave exclusiva será gerada automaticamente. A seleção prévia é opcional.'
-              : 'O par selecionado será vinculado à credencial e marcado como usado. Sem seleção, um par novo será gerado.'
+              ? 'A unique key will be generated automatically. Selecting one in advance is optional.'
+              : 'The selected pair will be linked to the credential and marked as used. Without a selection, a new pair will be generated.'
           }
         >
           <Select
@@ -192,41 +192,41 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
             className="font-mono"
           >
             <option value="">
-              Gerar chave exclusiva automaticamente
+              Generate a unique key automatically
             </option>
             {generatedKeys.map(k => (
               <option key={k.id} value={k.id}>
-                {k.algorithm} · {k.id} · {new Date(k.createdAt).toLocaleString('pt-BR')}
+                {k.algorithm} · {k.id} · {new Date(k.createdAt).toLocaleString('en-US')}
               </option>
             ))}
           </Select>
         </Field></details>
       )}
       {mode === 'simulated' && <details>
-        <summary className="cursor-pointer py-3 text-sm">Gerar uma chave de teste</summary>
+        <summary className="cursor-pointer py-3 text-sm">Generate a test key</summary>
         <KeyGeneratorButton refreshKey={generatedKeys.length} onKeyGenerated={key => { if (key) setSelectedKeyId(key.id); onCredentialCreated?.() }} />
       </details>}
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" onClick={() => setJsonInput(JSON.stringify(DEFAULT_JSON, null, 2))}>Restaurar exemplo</Button>
-        <Button variant="ghost" onClick={() => { try { const value = JSON.parse(jsonInput); value.challenge = base64url.encode(crypto.getRandomValues(new Uint8Array(32))); setJsonInput(JSON.stringify(value, null, 2)) } catch { setError('Corrija o JSON antes de gerar um challenge.') } }}>Novo challenge</Button>
+        <Button variant="ghost" onClick={() => setJsonInput(JSON.stringify(DEFAULT_JSON, null, 2))}>Restore sample</Button>
+        <Button variant="ghost" onClick={() => { try { const value = JSON.parse(jsonInput); value.challenge = base64url.encode(crypto.getRandomValues(new Uint8Array(32))); setJsonInput(JSON.stringify(value, null, 2)) } catch { setError('Fix the JSON before generating a challenge.') } }}>New challenge</Button>
       </div>
       <Field
-        label="Opções de criação (JSON)"
+        label="Creation options (JSON)"
         hint={
           <>
-            Objeto <InlineCode>PublicKeyCredentialCreationOptions</InlineCode>.
-            O campo <InlineCode>challenge</InlineCode> é obrigatório;{' '}
-            <InlineCode>rp</InlineCode>, <InlineCode>user</InlineCode> e{' '}
-            <InlineCode>pubKeyCredParams</InlineCode> são respeitados quando presentes no modo hardware.
+            <InlineCode>PublicKeyCredentialCreationOptions</InlineCode> object.
+            The field <InlineCode>challenge</InlineCode> is required;{' '}
+            <InlineCode>rp</InlineCode>, <InlineCode>user</InlineCode> and{' '}
+            <InlineCode>pubKeyCredParams</InlineCode> are honored when present in hardware mode.
           </>
         }
       >
-        <CodeEditor label="Opções de criação da credencial (JSON)"
+        <CodeEditor label="Credential creation options (JSON)"
           language="json"
           value={jsonInput}
           onChange={e => setJsonInput(e.target.value)}
-          placeholder="Cole as opções PublicKeyCredentialCreationOptions em JSON…"
+          placeholder="Paste PublicKeyCredentialCreationOptions as JSON…"
           minHeight={180}
           maxHeight={260}
         />
@@ -243,12 +243,12 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--success)]/12 text-[var(--success)]">
                 <CircleCheck size={14} />
               </span>
-              <h3 className="text-sm font-semibold">Credencial criada</h3>
-              <Badge variant="success">resposta de registro</Badge>
+              <h3 className="text-sm font-semibold">Credential created</h3>
+              <Badge variant="success">registration response</Badge>
             </div>
-            <CopyButton value={JSON.stringify(result, null, 2)} label="Copiar tudo" />
+            <CopyButton value={JSON.stringify(result, null, 2)} label="Copy all" />
           </div>
-          <div className="flex flex-wrap gap-2"><DecoderActions data={result} /><Button variant="secondary" onClick={() => window.dispatchEvent(new CustomEvent('studio:sign', { detail: result.id }))}>Assinar com esta credencial</Button></div>
+          <div className="flex flex-wrap gap-2"><DecoderActions data={result} /><Button variant="secondary" onClick={() => window.dispatchEvent(new CustomEvent('studio:sign', { detail: result.id }))}>Sign with this credential</Button></div>
           <JsonDisplay data={result} maxHeight={600} copyable={false} />
         </section>
       )}

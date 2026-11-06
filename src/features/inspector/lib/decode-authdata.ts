@@ -162,8 +162,8 @@ export function parseAuthData(
       const coseKey = resolveCoseKey(coseRecord);
       attestedCredentialData = { aaguid, credentialId, credentialIdLength, coseKey };
 
-      if (cborItems.length !== (flags.ed ? 2 : 1)) return { ok: false, error: "Estrutura CBOR incompleta ou com bytes extras em authenticatorData." };
-      if (flags.ed && toRecord(cborItems[1]) === null) return { ok: false, error: "Extensões devem ser um mapa CBOR." };
+      if (cborItems.length !== (flags.ed ? 2 : 1)) return { ok: false, error: "Incomplete CBOR structure or extra bytes in authenticatorData." };
+      if (flags.ed && toRecord(cborItems[1]) === null) return { ok: false, error: "Extensions must be a CBOR map." };
 
       // If extensions were decoded as the second item, extract them here
       if (flags.ed && cborItems.length >= 2) {
@@ -175,13 +175,13 @@ export function parseAuthData(
     } else if (flags.ed) {
       try {
         const extRecord = toRecord(decode(bytes.slice(offset)));
-        if (!extRecord) return { ok: false, error: "Extensões devem ser um mapa CBOR." };
+        if (!extRecord) return { ok: false, error: "Extensions must be a CBOR map." };
         extensions = extRecord as Record<string, unknown>;
       } catch {
-        return { ok: false, error: "Extensões CBOR ausentes ou inválidas." };
+        return { ok: false, error: "Missing or invalid CBOR extensions." };
       }
     } else if (bytes.length !== offset) {
-      return { ok: false, error: "authenticatorData contém bytes extras sem flags AT/ED." };
+      return { ok: false, error: "authenticatorData contains extra bytes without AT/ED flags." };
     }
 
     return {

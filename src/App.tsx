@@ -5,9 +5,9 @@ import Inspector from './features/inspector/App';
 import { appPath, routePath } from './navigation';
 
 const areas = [
-  { path: '/fido2-demo/', label: 'Aprender', description: 'Cerimônias FIDO2', Component: Learn, style: 'learn' },
-  { path: '/fido2-lab/', label: 'Experimentar', description: 'Credenciais e challenges', Component: Lab, style: 'lab' },
-  { path: '/webauthn-decoder/', label: 'Inspecionar', description: 'Payloads WebAuthn', Component: Inspector, style: 'inspector' },
+  { path: '/fido2-demo/', label: 'Learn', description: 'FIDO2 ceremonies', Component: Learn, style: 'learn' },
+  { path: '/fido2-lab/', label: 'Experiment', description: 'Credentials and challenges', Component: Lab, style: 'lab' },
+  { path: '/webauthn-decoder/', label: 'Inspect', description: 'WebAuthn payloads', Component: Inspector, style: 'inspector' },
 ];
 
 export default function App() {
@@ -43,20 +43,20 @@ export default function App() {
     if (url.hash) requestAnimationFrame(() => document.getElementById(url.hash.slice(1))?.scrollIntoView());
   }
   const known = areas.some(item => item.path.replace(/\/$/, '') === path.replace(/\/$/, '')) || path === '/';
-  return <div className="studio" lang="pt-BR" onClick={navigate}>
-    <a className="studio-skip" href="#studio-content">Pular para o conteúdo</a>
+  return <div className="studio" lang="en" onClick={navigate}>
+    <a className="studio-skip" href="#studio-content">Skip to content</a>
     <header className="studio-header">
       <div className="studio-top"><a className="studio-brand" href={appPath()}>Passkey Studio</a><span>FIDO2 / WebAuthn</span></div>
-      <nav className="studio-nav" aria-label="Áreas do Passkey Studio">
+      <nav className="studio-nav" aria-label="Passkey Studio areas">
         {areas.map(item => <a key={item.path} href={appPath(item.path)} aria-current={area === item ? 'page' : undefined}><strong>{item.label}</strong><span>{item.description}</span></a>)}
       </nav>
     </header>
     <div id="studio-content" tabIndex={-1}>
-      {!known && <p role="status" className="studio-route-notice">Área não encontrada. Você está em Aprender. <a href={appPath('/fido2-demo/')}>Abrir a rota Aprender</a></p>}
+      {!known && <p role="status" className="studio-route-notice">Area not found. You are in Learn. <a href={appPath('/fido2-demo/')}>Open the Learn area</a></p>}
       {areas.map(item => <Activity key={item.path} mode={area === item ? 'visible' : 'hidden'}><div className={`${item.style}-feature`}>
         {item.style === 'inspector' ? <Inspector incomingInput={inspection} /> : item.style === 'learn' ? <Learn /> : <Lab />}
       </div></Activity>)}
     </div>
-    <footer className="studio-footer"><p>Passkey Studio · Aprenda, experimente e inspecione WebAuthn</p><p>Payloads processados no navegador. Chaves simuladas são armazenadas localmente para desenvolvimento.</p><nav aria-label="Referências"><a href="https://www.w3.org/TR/webauthn-3/" target="_blank" rel="noopener noreferrer">WebAuthn</a><a href="https://fidoalliance.org/specifications/" target="_blank" rel="noopener noreferrer">FIDO Alliance</a></nav></footer>
+    <footer className="studio-footer"><p>Passkey Studio · Learn, experiment and inspect WebAuthn</p><p>Payloads are processed in your browser. Simulated keys are stored locally for development.</p><nav aria-label="References"><a href="https://www.w3.org/TR/webauthn-3/" target="_blank" rel="noopener noreferrer">WebAuthn</a><a href="https://fidoalliance.org/specifications/" target="_blank" rel="noopener noreferrer">FIDO Alliance</a></nav></footer>
   </div>;
 }
