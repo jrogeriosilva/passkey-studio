@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    /* Syntax colours for the decoded tree */
+    --color-tree-key: var(--tree-key);
+    --color-tree-string: var(--tree-string);
+    --color-tree-number: var(--tree-number);
+    --color-tree-true: var(--tree-true);
+    --color-tree-false: var(--tree-false);
+    --color-tree-punct: var(--tree-punct);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * The app ships a single dark theme (index.html sets class="dark").
+ * Tokens live on :root so they apply with or without the class.
+ */
+:root {
+    --background: #0b1120;
+    --foreground: #ebebeb;
+    --card: #141928;
+    --card-foreground: #ebebeb;
+    --popover: #141928;
+    --popover-foreground: #ebebeb;
+    --primary: #84b0ff;
+    --primary-foreground: #0b1120;
+    --secondary: #1a2845;
+    --secondary-foreground: oklch(0.93 0.01 260);
+    --muted: #1a2845;
+    --muted-foreground: #a3adbf;
+    --accent: #1a2845;
+    --accent-foreground: oklch(0.93 0.01 260);
+    --destructive: oklch(0.70 0.19 22);
+    --success: oklch(0.76 0.16 155);
+    --warning: oklch(0.82 0.15 80);
+    --border: #303b50;
+    --input: #3c4960;
+    --ring: #84b0ff;
+    --chart-1: var(--primary);
+    --chart-2: oklch(0.80 0.10 300);
+    --chart-3: var(--success);
+    --chart-4: var(--warning);
+    --chart-5: var(--destructive);
+    --radius: 0.75rem;
+    --sidebar: #121a2d;
+    --sidebar-foreground: oklch(0.93 0.01 260);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: #1a2540;
+    --sidebar-accent-foreground: oklch(0.93 0.01 260);
+    --sidebar-border: oklch(1 0 0 / 9%);
+    --sidebar-ring: var(--ring);
+
+    --tree-key: oklch(0.84 0.08 300);
+    --tree-string: oklch(0.82 0.13 150);
+    --tree-number: oklch(0.83 0.13 65);
+    --tree-true: oklch(0.78 0.16 155);
+    --tree-false: oklch(0.74 0.14 20);
+    --tree-punct: oklch(0.58 0.02 260);
+    --tree-guide: oklch(1 0 0 / 10%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: oklch(1 0 0 / 16%) transparent;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+
+/* Decoded tree ------------------------------------------------------------ */
+.decode-tree {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.decode-tree .tree-children {
+  margin-left: 0.4rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--tree-guide);
+}
+.decode-tree .tree-line {
+  display: block;
+  margin: 0 -0.375rem;
+  padding: 0 2.25rem 0 0.375rem; /* right gutter reserved for the hover copy button */
+  border-radius: 0.375rem;
+  overflow-wrap: anywhere;
+}
+.decode-tree .tree-line:hover {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+
+/* Shared FIDO2 workspace navigation. Keep aligned across the three apps. */
+.ecosystem-nav {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #303b50;
+}
+.ecosystem-nav a {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #a3adbf;
+  font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.ecosystem-nav a span:first-child { color: #ebebeb; font-size: 14px; font-weight: 600; }
+.ecosystem-nav a:hover { background: #141928; border-color: #303b50; }
+.ecosystem-nav a[aria-current] { background: #203455; border-color: #45618c; }
+.ecosystem-nav a[aria-current] span:first-child { color: #a9c8ff; }
+.ecosystem-nav a:focus-visible { outline: 2px solid #84b0ff; outline-offset: 3px; }
+@media (max-width: 480px) {
+  .ecosystem-nav { gap: 4px; }
+  .ecosystem-nav a { padding: 10px 8px; }
+  .ecosystem-nav a span:last-child { font-size: 11px; overflow-wrap: anywhere; }
+}
+
+::selection { background:#203455; color:#ebebeb; }
+:focus-visible { outline:2px solid #84b0ff; outline-offset:3px; }
+select { min-height:44px; }
+@media (pointer:coarse) {
+  button, [data-slot="button"] { min-height:44px; }
+  button:has(> svg:only-child) { min-width:44px; }
+}
+
+
+@media (hover:none) { .decode-tree .tree-copy { display:inline-flex; opacity:1; } }
+.decode-tree { overflow-wrap:anywhere; min-width:0; }
+.diagram-dialog { max-width:calc(100vw - 32px); max-height:calc(100vh - 32px); }
+
+body { background-image: none; color-scheme: dark; }
+input, textarea { caret-color: #84b0ff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Common application header across the FIDO2 suite. */
+.suite-header { position: sticky; top: 0; z-index: 40; display: block; background: #0b1120; border-bottom: 1px solid #303b50; }
+.suite-header-inner { max-width: 1024px; min-height: 72px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.suite-brand { display: flex; align-items: center; gap: 12px; min-width: 0; color: #ebebeb; text-decoration: none; }
+.suite-mark { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: #84b0ff; color: #0b1120; }
+.suite-brand-copy { display: flex; flex-direction: column; gap: 2px; }
+.suite-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 20px; letter-spacing: -0.01em; }
+.suite-subtitle { margin: 0; color: #a3adbf; font-size: 12px; line-height: 16px; }
+.suite-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+@media (max-width: 639px) { .suite-subtitle { display: none; } }
