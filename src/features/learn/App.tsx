@@ -6,6 +6,8 @@ import type { Actor, Ceremony, Mode } from './data/types';
 import { createCeremonies } from './data/ceremonies';
 import { CeremonyScene } from './components/CeremonyScene';
 import { EducationalContent } from './components/EducationalContent';
+import { SequenceDiagram } from './components/SequenceDiagram';
+import { Monitor, ListTree } from 'lucide-react';
 import { PayloadGuide } from './components/PayloadGuide';
 import { AuthenticatorIcon } from './components/AuthenticatorIcon';
 
@@ -78,6 +80,7 @@ export default function App() {
         return () => window.removeEventListener('studio:location', readLocation);
     }, []);
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const [view, setView] = useState<'world' | 'sequence'>('world');
     const [playing, setPlaying] = useState(false);
     const definition = useMemo(() => createCeremonies(T)[ceremony], [ceremony]);
     const steps = useMemo(() => definition.steps(mode), [definition, mode]);
@@ -170,6 +173,29 @@ export default function App() {
     <main className="main" style={{ '--step-dur': `${stepDuration}ms` } as CSSProperties}>
       <div className="visual-column">
       <section className={`stage ${playing ? 'is-playing' : ''}`} aria-label={T.ariaStage}>
+        <div className="controls" aria-label="Playback: arrows to navigate, space to play">
+          <button className="btn" onClick={() => go(0)}>{T.reset}</button>
+          <button className="btn" disabled={index === 0} aria-keyshortcuts="ArrowLeft" onClick={() => go(safeIndex - 1)}>{T.prev}</button>
+          <button className="btn primary" aria-keyshortcuts="Space" onClick={togglePlayback}>
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">{playing ? <><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></> : <path d="M4 2.5v11l9-5.5z"/>}</svg>
+            {playing ? T.pause : safeIndex === steps.length - 1 ? 'Replay' : T.play}
+          </button>
+          <button className="btn" disabled={index === steps.length - 1} aria-keyshortcuts="ArrowRight" onClick={() => go(safeIndex + 1)}>{T.next}</button>
+          <div className="progress" aria-hidden="true">
+            <i className="progress-fill" style={{ transform: `scaleX(${(index + 1) / steps.length})` }}/>
+            {playing && <b key={`play-${ceremony}-${mode}-${index}`} className="progress-timer"/>}
+          </div>
+          <span className="counter" role="status">{index + 1} / {steps.length}</span>
+        </div>
+        <p className="shortcuts">← → · Space: play/pause {view === 'world' && <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button>}</p>
+        <div className="view-toolbar">
+          <div className="view-switch" role="radiogroup" aria-label="Visualization" onKeyDown={onChoiceKey}>
+            <button type="button" role="radio" aria-checked={view === 'world'} tabIndex={view === 'world' ? 0 : -1} onClick={() => setView('world')}><Monitor size={16} aria-hidden="true" />Real World</button>
+            <button type="button" role="radio" aria-checked={view === 'sequence'} tabIndex={view === 'sequence' ? 0 : -1} onClick={() => setView('sequence')}><ListTree size={16} aria-hidden="true" />Sequence</button>
+          </div>
+          <span>{view === 'world' ? 'Follow the ceremony' : 'Select a message to explore'}</span>
+        </div>
+        {view === 'sequence' ? <SequenceDiagram steps={steps} index={safeIndex} onSelect={go} playing={playing} name={M.auth} /> : <>
         <div className="rail">
           <div className="track">
             {pktMeta && <i key={pktKey} className={`track-seg ${pktMeta.dirClass}`} style={{ left: pktMeta.segLeft, width: pktMeta.segWidth }}/>}
@@ -204,6 +230,7 @@ export default function App() {
           </div>
           <div className="note">{M.note}</div>
         </div>
+        </>}
         <div className="current-step">
           <div key={`${ceremony}-${mode}-${index}`} className="current-step-body">
             <span>{index + 1} / {steps.length} · {T.tags[step.tag]}</span>
@@ -211,21 +238,7 @@ export default function App() {
           </div>
         </div>
         <p className="sr-only" aria-live="polite" aria-atomic="true">{safeIndex + 1} / {steps.length}. {step.t}. {step.d}</p>
-        <div className="controls" aria-label="Playback: arrows to navigate, space to play">
-          <button className="btn" onClick={() => go(0)}>{T.reset}</button>
-          <button className="btn" disabled={index === 0} aria-keyshortcuts="ArrowLeft" onClick={() => go(safeIndex - 1)}>{T.prev}</button>
-          <button className="btn primary" aria-keyshortcuts="Space" onClick={togglePlayback}>
-            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">{playing ? <><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></> : <path d="M4 2.5v11l9-5.5z"/>}</svg>
-            {playing ? T.pause : safeIndex === steps.length - 1 ? 'Replay' : T.play}
-          </button>
-          <button className="btn" disabled={index === steps.length - 1} aria-keyshortcuts="ArrowRight" onClick={() => go(safeIndex + 1)}>{T.next}</button>
-          <div className="progress" aria-hidden="true">
-            <i className="progress-fill" style={{ transform: `scaleX(${(index + 1) / steps.length})` }}/>
-            {playing && <b key={`play-${ceremony}-${mode}-${index}`} className="progress-timer"/>}
-          </div>
-          <span className="counter" role="status">{index + 1} / {steps.length}</span>
-        </div>
-        <p className="shortcuts">← → · Space: play/pause <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button></p>
+
       </section>
         <section className="data" aria-labelledby="data-title">
           <h3 id="data-title">{step.tag === 'rp' ? T.dataRp : step.tag === 'auth' ? T.dataAuth : T.dataTransit}</h3>
