@@ -1,5 +1,9 @@
 # Migração para Passkey Studio
 
+## Etapa inicial: importação dos históricos
+
+A estrutura descrita nesta etapa foi substituída pela integração em SPA documentada abaixo.
+
 Data: 2026-11-05. Repositório local: `/home/joser/dev/fido/passkey-studio`.
 
 | Origem local | Commit importado | Destino |
@@ -15,3 +19,9 @@ Os diretórios originais não foram alterados. O histórico importado conserva a
 A integração utiliza uma entrada comum e mantém as aplicações como módulos separados, cada um com seu ciclo de vida React e seu CSS. O build final é um site único; transições entre módulos carregam uma nova página. Não há backend novo ou transferência automática de dados entre origens.
 
 As referências GitHub dos módulos continuam apontando para seus repositórios de origem, pois o novo repositório ainda é local. Não houve push ou publicação.
+
+## Integração em uma única aplicação
+
+A pedido do responsável pelo produto, a estrutura intermediária de monorepositório foi substituída por uma SPA Vite única. Os fontes estão agora em `src/features/{learn,lab,inspector}`; existe apenas um manifest, lockfile, index.html e createRoot. Os comandos de orquestração e proxies foram removidos, assim como os pontos de entrada e configurações separados. Documentos originais estão em `docs/origins/`; assets públicos mantêm namespaces para evitar colisões.
+
+As rotas históricas agora são tratadas no cliente com a API History. Cabeçalho, navegação e rodapé pertencem ao shell compartilhado. Dependências foram consolidadas no lockfile da raiz; o tema Tailwind é compartilhado e os estilos próprios do Demo e Lab usam CSS @scope para conter resets e tokens. Os commits de origem continuam no histórico Git.

@@ -8,7 +8,7 @@ web
 
 ## Escopo
 
-Contexto compartilhado das três aplicações deste workspace: `apps/fido2-demo/`, `apps/fido2-lab/` e `apps/webauthn-decoder/`. As três ferramentas pertencem ao repositório Passkey Studio, com entrada e comandos comuns na raiz. Cada módulo preserva seu código e dependências.
+Uma única aplicação Vite e React chamada Passkey Studio. As áreas Aprender, Experimentar e Inspecionar ficam em `src/features/learn/`, `src/features/lab/` e `src/features/inspector/`, com um ponto de entrada, uma árvore React, dependências e navegação compartilhadas.
 
 ## Usuários
 
@@ -26,7 +26,7 @@ O resultado esperado é permitir que o usuário entenda uma cerimônia, produza 
 
 ## Contexto de uso
 
-As aplicações são ferramentas web em React, TypeScript e Vite. O usuário pode executar cada uma localmente com `npm run dev` no diretório correspondente. As bases configuradas são `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/`.
+A aplicação usa React, TypeScript e Vite. Execute `npm run dev` na raiz. As rotas `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/` são áreas da mesma SPA, com navegação sem recarga e suporte ao histórico.
 
 No Lab, o fluxo documentado consiste em obter um challenge do servidor em teste, informar os dados necessários, gerar a resposta e copiá-la para o endpoint do servidor. O Decoder recebe dados colados pelo usuário e permite inspecionar e copiar o resultado. O Demo permite selecionar autenticador e cerimônia e controlar a reprodução das etapas.
 
@@ -56,7 +56,7 @@ No Lab, o fluxo documentado consiste em obter um challenge do servidor em teste,
 
 ## Compromissos de marca e conteúdo
 
-Os nomes existentes são FIDO2 Demo, FIDO2 Lab e WebAuthn Decoder. Preservar a terminologia técnica e distinguir claramente explicação ilustrativa, simulação e operação com autenticador real.
+A marca do produto é Passkey Studio. As áreas são Aprender, Experimentar e Inspecionar. FIDO2 Demo, FIDO2 Lab e WebAuthn Decoder são as origens históricas. Preservar a terminologia técnica e distinguir claramente explicação ilustrativa, simulação e operação com autenticador real.
 
 ## Evidências disponíveis
 

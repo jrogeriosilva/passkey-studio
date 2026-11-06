@@ -1,15 +1,14 @@
 # Passkey Studio
 
-Monorepositório com entrada estática e três módulos React/TypeScript/Vite em `apps/`.
+Uma aplicação Vite/React/TypeScript, com um package.json e lockfile na raiz.
 
-- Use Node.js 24. `npm ci` instala a raiz e os módulos usando seus lockfiles.
-- Comandos na raiz: `npm run dev`, `npm run lint`, `npm test`, `npm run build`, `npm run preview`.
-- Preserve `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/`.
-- Preserve o estilo de cada módulo: Demo quatro espaços e ponto e vírgula; Lab dois espaços sem ponto e vírgula; Decoder conforme o entorno.
-- Preserve assets, testes, idiomas, acessibilidade e a distinção entre ilustração, simulação e hardware.
-- Decoder processa payloads no navegador. Nunca registrar payloads sensíveis ou chaves privadas.
-- Lab guarda chaves simuladas no localStorage apenas para desenvolvimento.
-- Demo usa testes Node; Decoder usa Vitest; Lab requer validação manual.
-- Verifique UI no navegador em desktop e mobile. Execute lint, testes pertinentes e build.
+- Use Node.js 24 e comandos na raiz: npm ci, npm run dev, npm run lint, npm test, npm run build.
+- Entrada: src/main.tsx; shell e navegação: src/App.tsx.
+- Áreas: src/features/learn, src/features/lab e src/features/inspector.
+- Preserve os caminhos históricos como rotas da mesma SPA. Não criar subaplicações ou servidores proxy.
+- Theme Tailwind compartilhado em src/features/inspector/index.css; estilos específicos de Learn e Lab usam CSS @scope. Estilos do shell em src/index.css.
+- Preserve formatação local, assets, testes, idiomas e acessibilidade.
+- Learn é ilustrativo; Lab distingue simulação e hardware. Chaves simuladas no localStorage destinam-se a desenvolvimento. Inspector processa payloads localmente.
+- Nunca registrar ou commitar chaves privadas ou payloads sensíveis.
+- Testes Node das cerimônias e Vitest para TS/TSX. Verificar UI em desktop e mobile, além de lint e build.
 - Use Conventional Commits.
-- Workflows em `apps/*/.github/` são históricos e inativos neste layout. O workflow ativo fica na raiz.

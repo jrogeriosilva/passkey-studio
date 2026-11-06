@@ -1,27 +1,21 @@
 # Passkey Studio
 
-Ferramentas para aprender, experimentar e inspecionar FIDO2 e WebAuthn.
-
-## Executar
-
-Use Node.js 24:
+Uma aplicação React/TypeScript/Vite para aprender, experimentar e inspecionar FIDO2 e WebAuthn.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Abra **http://127.0.0.1:5173/**. O comando inicia o Studio e as três ferramentas na mesma origem. As portas 5181–5183 são reservadas aos servidores internos. Ctrl+C encerra todos os servidores.
+Use Node.js 24. Abra **http://127.0.0.1:5173/**.
 
-| Ferramenta | Caminho | Código |
+| Área | Recursos | Código |
 | --- | --- | --- |
-| Aprender — FIDO2 Demo | `/fido2-demo/` | `apps/fido2-demo/` |
-| Experimentar — FIDO2 Lab | `/fido2-lab/` | `apps/fido2-lab/` |
-| Inspecionar — WebAuthn Decoder | `/webauthn-decoder/` | `apps/webauthn-decoder/` |
+| Aprender | Cerimônias ilustradas, quatro autenticadores, português e inglês | `src/features/learn/` |
+| Experimentar | Criação e assinatura, simulação e hardware, chaves, base64 e attestation | `src/features/lab/` |
+| Inspecionar | Payloads WebAuthn, CBOR, envelopes JSON e registro AAGUID | `src/features/inspector/` |
 
-A instalação também executa `npm ci` em cada módulo, preservando seus lockfiles e versões de dependências.
-
-## Validar e distribuir
+Existe um único `package.json`, lockfile, servidor Vite, ponto de entrada React e build. O cabeçalho e a navegação são compartilhados. As rotas históricas `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/` agora abrem áreas da mesma SPA. A troca de área e os botões Voltar/Avançar não recarregam o documento. Campos não persistidos são reinicializados ao trocar de área.
 
 ```sh
 npm run lint
@@ -30,16 +24,8 @@ npm run build
 npm run preview
 ```
 
-O build gera **um diretório `dist/`** com o Studio e todas as ferramentas. Sirva esse diretório na raiz do domínio. Hospedagem em um subdiretório exige ajustar bases e links. A publicação remota não foi configurada.
+`npm test` executa os testes Node das cerimônias e os testes Vitest dos decodificadores e da navegação. O Lab também exige validação manual de seus fluxos. O build gera um único site em `dist/`. Configure o servidor estático para devolver `index.html` nas rotas da aplicação. A hospedagem é na raiz do domínio; subdiretórios exigem configurar base e rotas.
 
-Os testes executam as suítes Node do Demo e Vitest do Decoder. O Lab requer validação manual de criação e assinatura simuladas e, com autenticador disponível, de registro e autenticação com hardware.
+O Demo usa bytes ilustrativos. O Lab mantém chaves simuladas em localStorage apenas para desenvolvimento. O Inspector processa payloads no navegador. Dados de outras origens não são transferidos: localStorage depende da origem e credenciais WebAuthn dependem do RP ID.
 
-## Dados
-
-O Demo usa bytes ilustrativos. O Lab armazena chaves simuladas no localStorage apenas para desenvolvimento. O Decoder processa payloads no navegador. A migração do código não transfere dados de outras origens: localStorage depende da origem e credenciais WebAuthn dependem do RP ID. Os nomes das chaves existentes foram preservados.
-
-## Migração
-
-Veja [MIGRATION.md](MIGRATION.md) para origens e commits importados. Os históricos completos foram preservados sem squash. Os repositórios originais continuam intactos. Os módulos mantêm seus READMEs e referências históricas aos repositórios de origem. O Passkey Studio ainda não possui remote.
-
-As verificações e os limites da validação estão em [docs/VALIDATION.md](docs/VALIDATION.md).
+Histórico e documentação original: [MIGRATION.md](MIGRATION.md), [docs/origins](docs/origins). Validação: [docs/VALIDATION.md](docs/VALIDATION.md). Os repositórios originais permanecem intactos. O repositório é local, sem remote configurado.
