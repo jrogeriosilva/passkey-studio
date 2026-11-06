@@ -1,3 +1,4 @@
+import { appPath } from '../../../navigation';
 import { useState } from 'react'
 import { Button } from './ui/button'
 
@@ -14,7 +15,7 @@ export function DecoderActions({ data }: { data: unknown }) {
   return <div className="flex flex-col gap-2 my-3">
     <div className="flex gap-2 flex-wrap items-center">
       <Button variant="secondary" onClick={copy}>Copy response for Decoder</Button>
-      <a className="inline-flex min-h-11 items-center px-3 underline underline-offset-4" href="/webauthn-decoder/">Open Inspector</a>
+      <a className="inline-flex min-h-11 items-center px-3 underline underline-offset-4" href={appPath('/webauthn-decoder/')}>Open Inspector</a>
     </div>
     <p className="text-sm text-[var(--muted-foreground)]" role="status">{message}</p>
   </div>

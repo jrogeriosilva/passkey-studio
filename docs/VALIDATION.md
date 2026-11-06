@@ -14,3 +14,10 @@ Node.js 24.20.0, Linux. Validação em 2026-11-05 (America/Sao_Paulo).
 Limites: hardware físico e integração com servidores externos não foram testados. A consolidação reportou 12 vulnerabilidades nas dependências (2 baixas e 10 moderadas). O build aponta um chunk principal acima de 500 kB; a divisão adicional por área pode ser feita separadamente. Os campos não persistidos reiniciam ao trocar de área.
 
 Os históricos Git de origem permanecem preservados e os repositórios originais não foram alterados. Estilos específicos são contidos por CSS @scope; os navegadores de destino precisam suportar esse recurso.
+
+## Preparação do GitHub Pages
+
+- Build com `VITE_BASE_PATH=/passkey-studio/`.
+- Teste adicional da navegação e histórico sob a base do projeto: total de 195 testes (19 Node e 176 Vitest).
+- Entradas estáticas das três rotas contêm o mesmo HTML e referências ao bundle compartilhado. Não dependem de fallback SPA ou redirecionamento por 404.
+- Workflow com validação em pull requests e publicação apenas de `main`, usando artefato Pages e autenticação OIDC.

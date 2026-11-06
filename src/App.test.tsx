@@ -5,7 +5,7 @@ vi.mock('./features/learn/App', () => ({ default: () => <div>Learn feature</div>
 vi.mock('./features/lab/App', () => ({ default: () => <div>Lab feature</div> }));
 vi.mock('./features/inspector/App', () => ({ default: () => <div>Inspector feature</div> }));
 vi.stubGlobal('scrollTo', vi.fn());
-afterEach(() => { cleanup(); window.history.replaceState(null, '', '/'); });
+afterEach(() => { vi.unstubAllEnvs(); cleanup(); window.history.replaceState(null, '', '/'); });
 
 test('switches tools inside the same React application and responds to history navigation', () => {
   window.history.replaceState(null, '', '/');
@@ -35,4 +35,19 @@ test('supports direct entry to a tool and preserves modified link clicks', () =>
   fireEvent.click(link, { ctrlKey: true });
   expect(push).not.toHaveBeenCalled();
   push.mockRestore();
+});
+
+
+test('keeps navigation and history inside the GitHub Pages project base', () => {
+  vi.stubEnv('BASE_URL', '/passkey-studio/');
+  window.history.replaceState(null, '', '/passkey-studio/webauthn-decoder/');
+  render(<App />);
+  expect(screen.getByText('Inspector feature')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Passkey Studio' })).toHaveAttribute('href', '/passkey-studio/');
+  fireEvent.click(screen.getByRole('link', { name: /Experimentar/ }));
+  expect(window.location.pathname).toBe('/passkey-studio/fido2-lab/');
+  expect(screen.getByText('Lab feature')).toBeInTheDocument();
+  window.history.replaceState(null, '', '/passkey-studio/fido2-demo/');
+  fireEvent.popState(window);
+  expect(screen.getByText('Learn feature')).toBeInTheDocument();
 });

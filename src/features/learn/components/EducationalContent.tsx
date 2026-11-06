@@ -1,3 +1,4 @@
+import { appPath } from '../../../navigation';
 import type { Translations } from '../data/i18n';
 export function EducationalContent({ T }: {
     T: Translations;
@@ -18,7 +19,7 @@ export function EducationalContent({ T }: {
           FIDO2 Lab
         </h3>
         <p>{T.ctaLabP}</p>
-        <a className="btn primary" href="/fido2-lab/">
+        <a className="btn primary" href={appPath('/fido2-lab/')}>
           <span>{T.ctaLabBtn}</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h9"/><path d="M8.5 4.5 12 8l-3.5 3.5"/></svg>
         </a>
@@ -29,7 +30,7 @@ export function EducationalContent({ T }: {
           WebAuthn Decoder
         </h3>
         <p>{T.ctaDecP}</p>
-        <a className="btn" href="/webauthn-decoder/">
+        <a className="btn" href={appPath('/webauthn-decoder/')}>
           <span>{T.ctaDecBtn}</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h9"/><path d="M8.5 4.5 12 8l-3.5 3.5"/></svg>
         </a>

@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import Learn from './features/learn/App';
 import Lab from './features/lab/App';
 import Inspector from './features/inspector/App';
+import { appPath, routePath } from './navigation';
 
 const areas = [
   { path: '/fido2-demo/', label: 'Aprender', description: 'Cerimônias FIDO2', Component: Learn, style: 'learn' },
@@ -10,10 +11,10 @@ const areas = [
 ];
 
 export default function App() {
-  const [path, setPath] = useState(window.location.pathname);
+  const [path, setPath] = useState(routePath(window.location.pathname));
   const area = areas.find(item => item.path === path || item.path.slice(0, -1) === path) ?? areas[0];
   useEffect(() => {
-    const onPopState = () => setPath(window.location.pathname);
+    const onPopState = () => setPath(routePath(window.location.pathname));
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
@@ -23,19 +24,19 @@ export default function App() {
     const anchor = (event.target as HTMLElement).closest('a');
     if (!anchor || anchor.target || anchor.hasAttribute('download')) return;
     const url = new URL(anchor.href);
-    if (url.origin !== window.location.origin || url.hash || !['/', ...areas.map(item => item.path)].includes(url.pathname)) return;
+    if (url.origin !== window.location.origin || url.hash || !['/', ...areas.map(item => item.path)].includes(routePath(url.pathname))) return;
     event.preventDefault();
     window.history.pushState(null, '', url.pathname);
-    setPath(url.pathname);
+    setPath(routePath(url.pathname));
     window.scrollTo(0, 0);
   }
   const Feature = area.Component;
   return <div className="studio" onClick={navigate}>
     <a className="studio-skip" href="#studio-content">Pular para o conteúdo</a>
     <header className="studio-header">
-      <div className="studio-top"><a className="studio-brand" href="/">Passkey Studio</a><span>FIDO2 / WebAuthn</span></div>
+      <div className="studio-top"><a className="studio-brand" href={appPath()}>Passkey Studio</a><span>FIDO2 / WebAuthn</span></div>
       <nav className="studio-nav" aria-label="Áreas do Passkey Studio">
-        {areas.map(item => <a key={item.path} href={item.path} aria-current={area === item ? 'page' : undefined}><strong>{item.label}</strong><span>{item.description}</span></a>)}
+        {areas.map(item => <a key={item.path} href={appPath(item.path)} aria-current={area === item ? 'page' : undefined}><strong>{item.label}</strong><span>{item.description}</span></a>)}
       </nav>
     </header>
     <div id="studio-content" className={`${area.style}-feature`}><Feature /></div>

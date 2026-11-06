@@ -12,3 +12,5 @@ Uma aplicação Vite/React/TypeScript, com um package.json e lockfile na raiz.
 - Nunca registrar ou commitar chaves privadas ou payloads sensíveis.
 - Testes Node das cerimônias e Vitest para TS/TSX. Verificar UI em desktop e mobile, além de lint e build.
 - Use Conventional Commits.
+
+- GitHub Pages: base `/passkey-studio/` via VITE_BASE_PATH no workflow. Use appPath/routePath de src/navigation.ts nos links internos; mantenha scripts/pages-entries.mjs alinhado às rotas públicas.
