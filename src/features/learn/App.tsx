@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { appPath } from '../../navigation';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { I18N, detectLanguage } from './data/i18n';
 import type { Actor, Ceremony, Language, Mode } from './data/types';
@@ -14,6 +15,16 @@ const authenticators = [
     ['usb', 'tabUsb', 'tabUsbSub'], ['nfc', 'tabNfc', 'tabNfcSub'],
     ['hello', 'tabHello', 'tabHelloSub'], ['phone', 'tabPhone', 'tabPhoneSub'],
 ] as const;
+
+function onChoiceKey(event: React.KeyboardEvent<HTMLElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+    const active = buttons.indexOf(event.target as HTMLButtonElement);
+    if (active < 0) return;
+    event.preventDefault(); event.stopPropagation();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (active + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : buttons.length - 1)) % buttons.length;
+    buttons[next].focus(); buttons[next].click();
+}
 
 function RailNodeIcon({ actor, ceremony }: {
     actor: Actor;
@@ -44,19 +55,40 @@ function RailNodeIcon({ actor, ceremony }: {
 
 export default function App() {
     const [language, setLanguage] = useState<Language>(detectLanguage);
-    const [ceremony, setCeremony] = useState<Ceremony>('usb');
-    const [mode, setMode] = useState<Mode>('login');
-    const [index, setIndex] = useState(0);
+    const [ceremony, setCeremony] = useState<Ceremony>(() => { const value = new URLSearchParams(window.location.search).get('ceremony'); return authenticators.some(([id]) => id === value) ? value as Ceremony : 'usb'; });
+    const [mode, setMode] = useState<Mode>(() => new URLSearchParams(window.location.search).get('mode') === 'login' ? 'login' : 'register');
+    const [position, setIndex] = useState(() => { const value = Number(new URLSearchParams(window.location.search).get('step')); return Number.isInteger(value) && value > 0 ? value - 1 : 0; });
+    const lastQuery = useRef<string | null>(null);
+    useEffect(() => {
+        const readLocation = () => {
+            const query = window.location.search;
+            if (lastQuery.current === query) return;
+            lastQuery.current = query;
+            const params = new URLSearchParams(query);
+            const chosen = params.get('ceremony');
+            if (authenticators.some(([id]) => id === chosen)) setCeremony(chosen as Ceremony);
+            const nextMode = params.get('mode');
+            if (nextMode === 'register' || nextMode === 'login') setMode(nextMode);
+            const step = Number(params.get('step'));
+            if (params.has('step')) setIndex(Number.isInteger(step) && step > 0 ? step - 1 : 0);
+            setPlaying(false);
+        };
+        readLocation();
+        window.addEventListener('studio:location', readLocation);
+        return () => window.removeEventListener('studio:location', readLocation);
+    }, []);
+    const dialogRef = useRef<HTMLDialogElement>(null);
     const [playing, setPlaying] = useState(false);
     const T = I18N[language];
     const definition = useMemo(() => createCeremonies(T)[ceremony], [T, ceremony]);
     const steps = useMemo(() => definition.steps(mode), [definition, mode]);
-    const step = steps[index];
+    const index = Math.min(position, steps.length - 1);
+    const safeIndex = index;
+    const step = steps[safeIndex];
     const M = T[ceremony];
     const stepDuration = step.dur ?? 2800;
 
     useEffect(() => {
-        document.documentElement.lang = T.htmlLang;
         try {
             localStorage.setItem('fido2demo.lang', language);
         }
@@ -89,7 +121,7 @@ export default function App() {
         const onKey = (event: KeyboardEvent) => {
             if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
                 return;
-            if (event.target instanceof Element && event.target.closest('button, a, input, textarea, select, [contenteditable="true"]'))
+            if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"], dialog'))
                 return;
             if (event.key === 'ArrowRight') {
                 event.preventDefault();
@@ -99,7 +131,7 @@ export default function App() {
                 event.preventDefault();
                 go(index - 1);
             }
-            else if (event.key === ' ') {
+            else if (event.key === ' ' && !(event.target instanceof Element && event.target.closest('button, a'))) {
                 event.preventDefault();
                 togglePlayback();
             }
@@ -122,39 +154,35 @@ export default function App() {
         };
     })() : null;
 
-    return <>
-    <div className="suite-header"><div className="suite-header-inner">
-
-      <div className="suite-actions">      <div className="lang">
-        <svg className="globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13"/></svg>
-        <div className="seg" role="group" aria-label={T.ariaLang}>
-          {(['pt', 'en'] as const).map(lang => <button key={lang} aria-pressed={language === lang} lang={lang === 'pt' ? 'pt-BR' : 'en'} title={lang === 'pt' ? 'Português' : 'English'} onClick={() => { setPlaying(false); setLanguage(lang); }}>{lang.toUpperCase()}</button>)}
-        </div>
-      </div>
-      </div>
-    </div></div>
+    return <div lang={T.htmlLang}>
     <div className="wrap" id="top">
 
-    <meta name="description" content={T.metaDesc}/>
 
-    <div>
+    <header>
       <div className="head-text">
         <h1>{T.h1}</h1>
         <p className="lede">{T.lede}</p>
       </div>
-    </div>
+      <div className="lang">
+        <svg className="globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13"/></svg>
+        <div className="seg" role="radiogroup" onKeyDown={onChoiceKey} aria-label={T.ariaLang}>
+          {(['pt', 'en'] as const).map(lang => <button key={lang} role="radio" tabIndex={language === lang ? 0 : -1} aria-checked={language === lang} lang={lang === 'pt' ? 'pt-BR' : 'en'} title={lang === 'pt' ? 'Português' : 'English'} onClick={() => { setPlaying(false); setLanguage(lang); }}>{lang.toUpperCase()}</button>)}
+        </div>
+      </div>
+    </header>
     <div className="selector">
-      <div className="tabs" role="group" aria-label={T.ariaAuth}>
-        {authenticators.map(([id, title, subtitle]) => <button key={id} className="tab" aria-pressed={ceremony === id} onClick={() => { go(0); setCeremony(id); }}>
+      <div className="tabs" role="radiogroup" onKeyDown={onChoiceKey} aria-label={T.ariaAuth}>
+        {authenticators.map(([id, title, subtitle]) => <button key={id} className="tab" role="radio" tabIndex={ceremony === id ? 0 : -1} aria-checked={ceremony === id} onClick={() => { setPlaying(false); const next = createCeremonies(T)[id].steps(mode); setIndex(Math.round(safeIndex / Math.max(1, steps.length - 1) * (next.length - 1))); setCeremony(id); }}>
           <AuthenticatorIcon ceremony={id}/>
           <span><span>{T[title]}</span><span className="tab-sub">{T[subtitle]}</span></span>
         </button>)}
       </div>
-      <div className="seg" role="group" aria-label={T.ariaMode}>
-        {(['login', 'register'] as const).map(value => <button key={value} aria-pressed={mode === value} onClick={() => { go(0); setMode(value); }}>{value === 'login' ? T.modeLogin : T.modeRegister}</button>)}
+      <div className="seg" role="radiogroup" onKeyDown={onChoiceKey} aria-label={T.ariaMode}>
+        {(['register', 'login'] as const).map(value => <button key={value} role="radio" tabIndex={mode === value ? 0 : -1} aria-checked={mode === value} onClick={() => { setPlaying(false); const next = definition.steps(value); setIndex(Math.round(safeIndex / Math.max(1, steps.length - 1) * (next.length - 1))); setMode(value); }}>{value === 'login' ? T.modeLogin : T.modeRegister}</button>)}
       </div>
     </div>
     <main className="main" style={{ '--step-dur': `${stepDuration}ms` } as CSSProperties}>
+      <div className="visual-column">
       <section className={`stage ${playing ? 'is-playing' : ''}`} aria-label={T.ariaStage}>
         <div className="rail">
           <div className="track">
@@ -190,32 +218,41 @@ export default function App() {
           </div>
           <div className="note">{M.note}</div>
         </div>
-        <div className="current-step" aria-live="polite" aria-atomic="true">
+        <div className="current-step">
           <div key={`${ceremony}-${mode}-${index}`} className="current-step-body">
             <span>{index + 1} / {steps.length} · {T.tags[step.tag]}</span>
             <h2>{step.t}</h2><p>{step.d}</p>
           </div>
         </div>
-        <div className="controls">
+        <p className="sr-only" aria-live="polite" aria-atomic="true">{safeIndex + 1} / {steps.length}. {step.t}. {step.d}</p>
+        <div className="controls" aria-label={language === 'pt' ? 'Reprodução: setas para navegar, espaço para reproduzir' : 'Playback: arrows to navigate, space to play'}>
           <button className="btn" onClick={() => go(0)}>{T.reset}</button>
-          <button className="btn" disabled={index === 0} onClick={() => go(index - 1)}>{T.prev}</button>
-          <button className="btn primary" onClick={togglePlayback}>
+          <button className="btn" disabled={index === 0} aria-keyshortcuts="ArrowLeft" onClick={() => go(safeIndex - 1)}>{T.prev}</button>
+          <button className="btn primary" aria-keyshortcuts="Space" onClick={togglePlayback}>
             <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">{playing ? <><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></> : <path d="M4 2.5v11l9-5.5z"/>}</svg>
-            {playing ? T.pause : T.play}
+            {playing ? T.pause : safeIndex === steps.length - 1 ? (language === 'pt' ? 'Repetir' : 'Replay') : T.play}
           </button>
-          <button className="btn" disabled={index === steps.length - 1} onClick={() => go(index + 1)}>{T.next}</button>
+          <button className="btn" disabled={index === steps.length - 1} aria-keyshortcuts="ArrowRight" onClick={() => go(safeIndex + 1)}>{T.next}</button>
           <div className="progress" aria-hidden="true">
             <i className="progress-fill" style={{ transform: `scaleX(${(index + 1) / steps.length})` }}/>
             {playing && <b key={`play-${ceremony}-${mode}-${index}`} className="progress-timer"/>}
           </div>
           <span className="counter" role="status">{index + 1} / {steps.length}</span>
         </div>
+        <p className="shortcuts">← → · {language === 'pt' ? 'Espaço: reproduzir/pausar' : 'Space: play/pause'} <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>{language === 'pt' ? 'Ampliar cena' : 'Enlarge scene'}</button></p>
       </section>
+        <section className="data" aria-labelledby="data-title">
+          <h3 id="data-title">{step.tag === 'rp' ? T.dataRp : step.tag === 'auth' ? T.dataAuth : T.dataTransit}</h3>
+          <div className="data-actions"><span>{language === 'pt' ? 'Ilustrativo' : 'Illustrative'}</span><a href={appPath('/webauthn-decoder/') + '?sample=' + (mode === 'register' ? 'publickeycredential-json' : 'publickeycredential-authentication')}>{language === 'pt' ? 'Inspecionar exemplo completo' : 'Inspecionar · complete sample'}</a></div>
+          <pre key={`${ceremony}-${mode}-${index}`} className="data-pre">{step.data}</pre>
+        </section>
+      </div>
       <aside className="side">
         <section className="steps" aria-labelledby="steps-title">
           <h2 id="steps-title">{T.stepsTitle(mode, M.name)}</h2>
           <p className="h-sub">{T.stepsSub(steps.length)}</p>
           <ol className="list">{steps.map((item, i) => <li key={i} className={i === index ? 'active' : i < index ? 'done' : ''}>
+            {(i === 0 || (i === 3) || i === steps.length - 2) && <p className="phase-label">{language === 'pt' ? (i === 0 ? 'Desafio' : i === 3 ? 'Autenticador' : 'Verificação') : (i === 0 ? 'Challenge' : i === 3 ? 'Authenticator' : 'Verification')}</p>}
             <button aria-current={i === index ? 'step' : undefined} onClick={() => go(i)}>
               <span className="n">{String(i + 1).padStart(2, '0')}</span>
               <span className="step-copy">
@@ -229,12 +266,13 @@ export default function App() {
             </button>
           </li>)}</ol>
         </section>
-        <section className="data" aria-labelledby="data-title">
-          <h3 id="data-title">{step.tag === 'rp' ? T.dataRp : step.tag === 'auth' ? T.dataAuth : T.dataTransit}</h3>
-          <pre key={`${ceremony}-${mode}-${index}`} className="data-pre">{step.data}</pre>
-        </section>
+
       </aside>
     </main>
     <EducationalContent T={T}/>
-  </div></>;
+    <dialog ref={dialogRef} aria-label={language === 'pt' ? 'Cena ampliada' : 'Enlarged scene'} className="scene-dialog">
+      <button className="btn" onClick={() => dialogRef.current?.close()}>{language === 'pt' ? 'Fechar' : 'Close'}</button>
+      <div className="scene-zoom-scroll"><div><CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/></div></div>
+    </dialog>
+  </div></div>;
 }

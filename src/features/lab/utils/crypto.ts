@@ -6,6 +6,7 @@ export const base64url = {
   },
 
   decode: (str: string): ArrayBuffer => {
+    if (typeof str !== 'string' || !str || !/^[A-Za-z0-9_-]+$/.test(str) || str.length % 4 === 1) throw new Error('Base64url inválido. Informe o valor completo, sem aspas, espaços ou padding.')
     let s = str.replace(/-/g, '+').replace(/_/g, '/')
     while (s.length % 4) s += '='
     const binary = atob(s)

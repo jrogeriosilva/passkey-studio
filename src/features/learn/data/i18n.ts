@@ -5,7 +5,7 @@ export const I18N = {
         htmlLang: 'pt-BR', title: 'Cerimônias FIDO2',
         metaDesc: 'Demonstração interativa das cerimônias de registro e autenticação FIDO2/WebAuthn.',
         h1: 'Cerimônias FIDO2, passo a passo',
-        lede: ["Quatro formas de provar quem você é sem senha: uma ", createElement('strong', { key: 0 }, "chave USB"), ", uma ", createElement('strong', { key: 1 }, "chave NFC"), " por aproximação, o ", createElement('strong', { key: 2 }, "Windows Hello"), " com a chave guardada no TPM, e uma ", createElement('strong', { key: 3 }, "passkey no smartphone"), ". Escolha a cerimônia, aperte reproduzir e acompanhe o desafio ir e voltar."],
+        lede: ['Compare ', createElement('strong', { key: 0 }, 'quatro autenticadores'), ' em registro e autenticação. Escolha uma cerimônia e reproduza as etapas.'],
         ariaLang: 'Idioma', ariaAuth: 'Autenticador', ariaMode: 'Tipo de cerimônia', ariaStage: 'Palco da animação',
         tabUsb: 'Chave USB', tabUsbSub: 'Toque físico · CTAP2 sobre USB',
         tabNfc: 'Chave NFC', tabNfcSub: 'Aproximação · CTAP2 sobre NFC',
@@ -24,9 +24,9 @@ export const I18N = {
         ctaTitle: 'Agora com bytes de verdade',
         ctaLede: 'Esta página é ilustrativa: os valores mostrados são inventados. Para ver as mesmas cerimônias produzindo credenciais reais — e para abrir os campos de uma resposta WebAuthn byte a byte — use as duas ferramentas abaixo.',
         ctaLabP: 'Cliente de testes no navegador para servidores FIDO2. Execute registro e autenticação com um autenticador de hardware real ou com credenciais totalmente simuladas — sem precisar de chave física.',
-        ctaLabBtn: 'Abrir o FIDO2 Lab',
+        ctaLabBtn: 'Abrir Experimentar',
         ctaDecP: ["Cole um ", createElement('code', { key: 0 }, "PublicKeyCredential"), ", ", createElement('code', { key: 1 }, "attestationObject"), ", ", createElement('code', { key: 2 }, "authenticatorData"), " ou ", createElement('code', { key: 3 }, "clientDataJSON"), " e inspecione cada campo em uma árvore navegável. Roda inteiramente no seu navegador: nada é enviado para fora."],
-        ctaDecBtn: 'Abrir o Decoder',
+        ctaDecBtn: 'Abrir Inspecionar',
         disclaimer: ["Esta página é uma demonstração puramente gráfica. Nenhuma chamada real a ", createElement('code', { key: 0 }, "navigator.credentials"), " é feita, e os bytes exibidos são ilustrativos. Os passos seguem a estrutura das especificações WebAuthn (W3C) e CTAP2 (FIDO Alliance)."],
         /* scene */
         domain: 'banco.exemplo', rpHashNote: 'SHA-256 de "banco.exemplo"',
@@ -141,7 +141,7 @@ export const I18N = {
         htmlLang: 'en', title: 'FIDO2 Ceremonies',
         metaDesc: 'Interactive demonstration of the FIDO2/WebAuthn registration and authentication ceremonies.',
         h1: 'FIDO2 ceremonies, step by step',
-        lede: ["Four ways to prove who you are without a password: a ", createElement('strong', { key: 0 }, "USB security key"), ", an ", createElement('strong', { key: 1 }, "NFC key"), " tapped on a reader, ", createElement('strong', { key: 2 }, "Windows Hello"), " with the key stored in the TPM, and a ", createElement('strong', { key: 3 }, "passkey on your smartphone"), ". Pick a ceremony, press play and follow the challenge on its round trip."],
+        lede: ['Compare ', createElement('strong', { key: 0 }, 'four authenticators'), ' in registration and authentication. Choose a ceremony and play its steps.'],
         ariaLang: 'Language', ariaAuth: 'Authenticator', ariaMode: 'Ceremony type', ariaStage: 'Animation stage',
         tabUsb: 'USB key', tabUsbSub: 'Physical touch · CTAP2 over USB',
         tabNfc: 'NFC key', tabNfcSub: 'Tap on a reader · CTAP2 over NFC',
@@ -160,9 +160,9 @@ export const I18N = {
         ctaTitle: 'Now with real bytes',
         ctaLede: 'This page is illustrative: the values shown are made up. To watch the same ceremonies produce real credentials — and to open the fields of a WebAuthn response byte by byte — use the two tools below.',
         ctaLabP: 'In-browser test client for FIDO2 servers. Run registration and authentication with a real hardware authenticator or with fully simulated credentials — no physical key required.',
-        ctaLabBtn: 'Open FIDO2 Lab',
+        ctaLabBtn: 'Experimentar · FIDO2 Lab',
         ctaDecP: ["Paste a ", createElement('code', { key: 0 }, "PublicKeyCredential"), ", ", createElement('code', { key: 1 }, "attestationObject"), ", ", createElement('code', { key: 2 }, "authenticatorData"), " or ", createElement('code', { key: 3 }, "clientDataJSON"), " and inspect every field in a navigable tree. Runs entirely in your browser: nothing is sent anywhere."],
-        ctaDecBtn: 'Open the Decoder',
+        ctaDecBtn: 'Inspecionar · WebAuthn Decoder',
         disclaimer: ["This page is a purely graphical demonstration. No real call to ", createElement('code', { key: 0 }, "navigator.credentials"), " is made, and the bytes shown are illustrative. The steps follow the structure of the WebAuthn (W3C) and CTAP2 (FIDO Alliance) specifications."],
         /* scene */
         domain: 'bank.example', rpHashNote: 'SHA-256 of "bank.example"',
@@ -282,5 +282,5 @@ export function detectLanguage(): Language {
             return saved;
     }
     catch { /* Browser storage can be unavailable. */ }
-    return navigator.language.toLowerCase().startsWith('pt') ? 'pt' : 'en';
+    return 'pt';
 }

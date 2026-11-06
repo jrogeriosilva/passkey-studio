@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { StorageTools } from './components/StorageTools'
+import { useEffect, useState } from 'react'
 import {
   Binary,
-  Check,
-  ChevronDown,
   Cpu,
   Database,
   KeyRound,
@@ -19,8 +18,8 @@ import CredentialManager from './components/CredentialManager'
 import Base64Decoder from './components/Base64Decoder'
 import AttestationObjectDecoder from './components/AttestationObjectDecoder'
 import { cn } from './lib/utils'
-import { Button } from './components/ui/button'
-import { Badge } from './components/ui/badge'
+import { Select } from './components/ui/select'
+import { Alert } from './components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 
 type Tab = 'create' | 'sign' | 'base64' | 'attest' | 'creds'
@@ -40,58 +39,43 @@ interface TabDef {
 const TABS: TabDef[] = [
   {
     id: 'create',
-    label: 'Create Credential',
+    label: 'Criar credencial',
     icon: KeyRound,
-    title: 'Create Credential',
-    description: 'Register a new credential from the PublicKeyCredentialCreationOptions returned by your server.',
+    title: 'Criar credencial',
+    description: 'Registre uma credencial com as opções PublicKeyCredentialCreationOptions do servidor.',
     modeAware: true,
   },
   {
     id: 'sign',
-    label: 'Sign / Assert',
+    label: 'Assinar',
     icon: Signature,
-    title: 'Sign / Assert',
-    description: 'Sign a server challenge with a stored credential and produce a WebAuthn assertion.',
+    title: 'Assinar',
+    description: 'Assine o challenge do servidor e produza uma assertion WebAuthn.',
     modeAware: true,
   },
   {
     id: 'base64',
-    label: 'Base64 Tool',
+    label: 'Base64url',
     icon: Binary,
-    title: 'Base64URL Tool',
-    description: 'Encode and decode base64url strings — the encoding FIDO2 uses on the wire.',
+    title: 'Conversor base64url',
+    description: 'Converta texto e bytes em base64url, a codificação usada por WebAuthn.',
     modeAware: false,
   },
   {
     id: 'attest',
-    label: 'Attestation Decoder',
+    label: 'Atestação',
     icon: ScanSearch,
-    title: 'Attestation Decoder',
-    description: 'Inspect the CBOR structure of an attestationObject: format, authenticator data and statement.',
+    title: 'Atestação',
+    description: 'Examine formato, dados do autenticador e declaração de um attestationObject.',
     modeAware: false,
   },
   {
     id: 'creds',
-    label: 'Credentials',
+    label: 'Credenciais',
     icon: Database,
-    title: 'Credentials & Keys',
-    description: 'Everything kept in this browser\u2019s localStorage: generated key pairs and registered credentials.',
+    title: 'Credenciais e chaves',
+    description: 'Dados em localStorage deste navegador: pares de chaves e credenciais de teste.',
     modeAware: true,
-  },
-]
-
-const MODES: { value: Mode; icon: LucideIcon; title: string; desc: string }[] = [
-  {
-    value: 'simulated',
-    icon: Cpu,
-    title: 'Simulated',
-    desc: 'Generate keys and sign internally via SubtleCrypto. No hardware required.',
-  },
-  {
-    value: 'hardware',
-    icon: Usb,
-    title: 'Hardware (WebAuthn)',
-    desc: 'Use a real authenticator via navigator.credentials — FIDO2/WebAuthn API.',
   },
 ]
 
@@ -104,103 +88,12 @@ interface AssertionData {
 }
 
 function ModeMenu({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const current = MODES.find(m => m.value === mode) ?? MODES[0]
-  const CurrentIcon = current.icon
-
-  // Close on outside click / Escape. (A fixed full-screen overlay would be
-  // clipped by the header's backdrop-filter, so listen on the document instead.)
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
-  return (
-    <div className="relative" ref={rootRef}>
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 gap-2 pl-2.5 pr-2"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen(o => !o)}
-      >
-        <CurrentIcon
-          size={14}
-          className={mode === 'simulated' ? 'text-[var(--brand)]' : 'text-[var(--warning)]'}
-        />
-        <span>{current.title.replace(' (WebAuthn)', '')}</span>
-        <ChevronDown
-          size={13}
-          className={cn('text-[var(--muted-foreground)] transition-transform', open && 'rotate-180')}
-        />
-      </Button>
-
-      {open && (
-        <>
-          <div
-            role="menu"
-            className={cn(
-              'absolute right-0 top-full z-50 mt-1.5 w-[min(300px,calc(100vw-80px))] rounded-xl border border-[var(--border)] bg-[var(--popover)] p-1',
-              'shadow-[0_12px_40px_-8px_oklch(0_0_0/70%)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150',
-            )}
-          >
-            <p className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-              Authenticator mode
-            </p>
-            {MODES.map(item => {
-              const active = item.value === mode
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.value}
-                  role="menuitemradio"
-                  aria-checked={active}
-                  onClick={() => { onChange(item.value); setOpen(false) }}
-                  className={cn(
-                    'flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
-                    active ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]/60',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md',
-                      active
-                        ? 'bg-[var(--brand)]/15 text-[var(--brand)]'
-                        : 'bg-[var(--secondary)] text-[var(--muted-foreground)]',
-                    )}
-                  >
-                    <Icon size={13} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 font-medium leading-tight">
-                      {item.title}
-                      {active && <Check size={13} className="text-[var(--brand)]" />}
-                    </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-[var(--muted-foreground)]">
-                      {item.desc}
-                    </span>
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  )
+  return <label className="flex flex-col gap-1 text-sm">Modo do autenticador
+    <Select value={mode} onChange={event => onChange(event.target.value as Mode)} className={mode === 'simulated' ? 'text-[var(--warning)]' : 'text-[var(--success)]'}>
+      <option value="simulated">Simulado · SubtleCrypto</option>
+      <option value="hardware">Hardware · WebAuthn</option>
+    </Select>
+  </label>
 }
 
 function SectionHeading({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) {
@@ -226,33 +119,29 @@ export default function App() {
   const handleCredentialCreated = () => setRefreshKey(k => k + 1)
   const handleAssertionGenerated = (a: AssertionData) => setAssertion(a)
 
+  useEffect(() => {
+    const sign = () => setActiveTab('sign')
+    window.addEventListener('studio:sign', sign)
+    return () => window.removeEventListener('studio:sign', sign)
+  }, [])
+
   const current = TABS.find(t => t.id === activeTab) ?? TABS[0]
   const CurrentIcon = current.icon
 
   return (
     <div className="relative flex min-h-screen flex-col">
 
-      {/* Header */}
-      <div className="suite-header">
-        <div className="suite-header-inner">
-
-          <div className="suite-actions">
-            <ModeMenu mode={mode} onChange={next => { setMode(next); setAssertion(null) }} />
-
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
       <main id="top" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 sm:gap-6 px-4 pb-12 pt-5 sm:pb-16 sm:pt-8">
 
 
+<h1 className="text-2xl font-semibold">Experimentar WebAuthn</h1>
         {/* Tab navigation */}
-        <nav aria-label="Tools" className="min-w-0">
+        <nav aria-label="Ferramentas" className="min-w-0">
           <div
             role="tablist"
-            aria-label="Tools"
-            className="flex flex-nowrap overflow-x-auto sm:flex-wrap items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1"
+            aria-label="Ferramentas"
+            className="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1"
           >
             {TABS.map(tab => {
               const active = tab.id === activeTab
@@ -296,7 +185,6 @@ export default function App() {
           role="tabpanel"
           id="tool-panel"
           aria-labelledby={`tab-${activeTab}`}
-          tabIndex={0}
         >
           <CardHeader>
             <div className="flex items-start gap-3">
@@ -308,23 +196,18 @@ export default function App() {
                 <CardDescription>{current.description}</CardDescription>
               </div>
             </div>
-            {current.modeAware && (
-              <Badge
-                variant={mode === 'simulated' ? 'brand' : 'warning'}
-                className="h-6 shrink-0 self-start px-2.5 sm:self-center"
-              >
-                {mode === 'simulated' ? <Cpu /> : <Usb />}
-                {mode === 'simulated' ? 'Simulated mode' : 'Hardware mode'}
-              </Badge>
-            )}
+            {current.modeAware && <ModeMenu mode={mode} onChange={next => { setMode(next); setAssertion(null) }} />}
           </CardHeader>
 
           <CardContent>
-            <section hidden={activeTab !== 'create'} aria-label="Create Credential">
+            {current.modeAware && <div className="mb-5"><Alert variant={mode === 'simulated' ? 'warning' : 'info'}>{mode === 'simulated'
+              ? 'Somente desenvolvimento e testes. O modo simulado usa SubtleCrypto e grava chaves privadas sem criptografia em localStorage. Não use credenciais de produção.'
+              : <>Hardware: navigator.credentials aciona um autenticador real. A chave privada permanece no autenticador; o RP ID deve corresponder à origem desta página.{window.location.hostname === '127.0.0.1' && <> Para desenvolvimento local, <a className="underline" href={window.location.href.replace('127.0.0.1', 'localhost')}>abra em localhost</a> e restaure o exemplo para usar um RP ID aceito pelo navegador.</>}</>}</Alert></div>}
+            <section hidden={activeTab !== 'create'} aria-label="Criar credencial">
               <CreateCredentialForm mode={mode} onCredentialCreated={handleCredentialCreated} />
             </section>
 
-            <section hidden={activeTab !== 'sign'} aria-label="Sign / Assert">
+            <section hidden={activeTab !== 'sign'} aria-label="Assinar">
               <div className="flex flex-col gap-6">
                 <SigningPanel mode={mode} refreshKey={refreshKey} onAssertionGenerated={handleAssertionGenerated} />
                 {assertion && (
@@ -335,20 +218,20 @@ export default function App() {
               </div>
             </section>
 
-            {activeTab === 'base64' && <Base64Decoder />}
+            <section hidden={activeTab !== 'base64'}><Base64Decoder /></section>
 
-            {activeTab === 'attest' && <AttestationObjectDecoder />}
+            <section hidden={activeTab !== 'attest'}><AttestationObjectDecoder /></section>
 
-            {activeTab === 'creds' && (
+            <section hidden={activeTab !== 'creds'}>
               <div className="flex flex-col gap-6">
                 {mode === 'simulated' && (
                   <section className="flex flex-col gap-4">
                     <SectionHeading
                       icon={KeyRound}
-                      title="Key Generator"
-                      description="Pre-generate ES256 or RS256 key pairs to attach to simulated credentials."
+                      title="Gerador de chaves"
+                      description="Gere pares ES256 ou RS256 opcionais para credenciais simuladas."
                     />
-                    <KeyGeneratorButton onKeyGenerated={handleCredentialCreated} />
+                    <KeyGeneratorButton refreshKey={refreshKey} onKeyGenerated={handleCredentialCreated} />
                   </section>
                 )}
                 <section
@@ -359,13 +242,14 @@ export default function App() {
                 >
                   <SectionHeading
                     icon={Database}
-                    title="Stored Credentials"
-                    description="Registered credentials with their metadata and public keys."
+                    title="Credenciais armazenadas"
+                    description="Credenciais registradas, seus metadados e chaves públicas."
                   />
                   <CredentialManager refreshKey={refreshKey} />
+                  <StorageTools onChange={handleCredentialCreated} />
                 </section>
               </div>
-            )}
+            </section>
           </CardContent>
         </Card>
       </main>

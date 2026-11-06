@@ -4,14 +4,14 @@ import { SamplePayloadsMenu } from "./SamplePayloadsMenu";
 import { getSamplePayloads } from "@/inspector/data/sample-payloads";
 
 describe("SamplePayloadsMenu", () => {
-  it("renders a trigger button labeled 'Load sample'", () => {
+  it("renders a trigger button labeled 'Carregar exemplo'", () => {
     render(<SamplePayloadsMenu onSelect={() => {}} />);
-    expect(screen.getByRole("button", { name: /load sample/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /carregar exemplo/i })).toBeInTheDocument();
   });
 
   it("opens the menu and lists every sample on click", () => {
     render(<SamplePayloadsMenu onSelect={() => {}} />);
-    const trigger = screen.getByRole("button", { name: /load sample/i });
+    const trigger = screen.getByRole("button", { name: /carregar exemplo/i });
     act(() => {
       fireEvent.click(trigger);
     });
@@ -24,7 +24,7 @@ describe("SamplePayloadsMenu", () => {
     const onSelect = vi.fn();
     render(<SamplePayloadsMenu onSelect={onSelect} />);
     act(() => {
-      fireEvent.click(screen.getByRole("button", { name: /load sample/i }));
+      fireEvent.click(screen.getByRole("button", { name: /carregar exemplo/i }));
     });
     const samples = getSamplePayloads();
     const target = samples[0];

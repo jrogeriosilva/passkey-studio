@@ -26,6 +26,8 @@ import type { DecodedAuthData, AuthDataFlags } from "@/inspector/lib/types";
 function parseFlags(flagsByte: number): AuthDataFlags {
   return {
     up: (flagsByte & 0x01) !== 0, // bit 0
+    be: (flagsByte & 0x08) !== 0,
+    bs: (flagsByte & 0x10) !== 0,
     uv: (flagsByte & 0x04) !== 0, // bit 2
     at: (flagsByte & 0x40) !== 0, // bit 6
     ed: (flagsByte & 0x80) !== 0, // bit 7
@@ -41,7 +43,7 @@ function toRecord(value: unknown): Record<number | string, unknown> | null {
   if (value instanceof Map) {
     return Object.fromEntries(value.entries()) as Record<number | string, unknown>;
   }
-  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+  if (value !== null && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value)) {
     return value as Record<number | string, unknown>;
   }
   return null;
@@ -160,6 +162,9 @@ export function parseAuthData(
       const coseKey = resolveCoseKey(coseRecord);
       attestedCredentialData = { aaguid, credentialId, credentialIdLength, coseKey };
 
+      if (cborItems.length !== (flags.ed ? 2 : 1)) return { ok: false, error: "Estrutura CBOR incompleta ou com bytes extras em authenticatorData." };
+      if (flags.ed && toRecord(cborItems[1]) === null) return { ok: false, error: "Extensões devem ser um mapa CBOR." };
+
       // If extensions were decoded as the second item, extract them here
       if (flags.ed && cborItems.length >= 2) {
         const extRecord = toRecord(cborItems[1]);
@@ -167,19 +172,16 @@ export function parseAuthData(
           extensions = extRecord as Record<string, unknown>;
         }
       }
-    } else if (flags.ed && offset < bytes.length) {
-      // ED set but AT not set — extensions follow immediately after signCount
-      const extSlice = bytes.slice(offset);
+    } else if (flags.ed) {
       try {
-        const rawExt = decode(extSlice);
-        const extRecord = toRecord(rawExt);
-        if (extRecord !== null) {
-          extensions = extRecord as Record<string, unknown>;
-        }
+        const extRecord = toRecord(decode(bytes.slice(offset)));
+        if (!extRecord) return { ok: false, error: "Extensões devem ser um mapa CBOR." };
+        extensions = extRecord as Record<string, unknown>;
       } catch {
-        // Extensions parse failure is non-fatal
-        extensions = undefined;
+        return { ok: false, error: "Extensões CBOR ausentes ou inválidas." };
       }
+    } else if (bytes.length !== offset) {
+      return { ok: false, error: "authenticatorData contém bytes extras sem flags AT/ED." };
     }
 
     return {

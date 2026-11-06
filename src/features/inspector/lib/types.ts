@@ -4,7 +4,7 @@
  */
 
 /** Payload types the user can select for decoding. */
-export type PayloadType = "registration" | "authentication" | "clientDataJSON" | "raw-cbor";
+export type PayloadType = "registration" | "authentication" | "clientDataJSON" | "raw-cbor" | "authenticatorData";
 
 /** COSE key type, algorithm, and curve info with human-readable names. */
 export interface CoseKeyInfo {
@@ -17,6 +17,8 @@ export interface CoseKeyInfo {
 /** Parsed authenticatorData flags byte. */
 export interface AuthDataFlags {
   up: boolean;   // User Present (bit 0)
+  be?: boolean;
+  bs?: boolean;
   uv: boolean;   // User Verified (bit 2)
   at: boolean;   // Attested Credential Data (bit 6)
   ed: boolean;   // Extension Data (bit 7)
@@ -80,6 +82,8 @@ export interface PublicKeyCredentialEnvelope {
   rawIdB64: string;
   innerBytes: Uint8Array;
   innerKind: "attestationObject" | "authenticatorData";
+  signature?: Uint8Array;
+  userHandle?: Uint8Array | null;
   clientDataJSON?: Uint8Array;
   credentialType?: string;
   authenticatorAttachment?: string;
@@ -102,6 +106,8 @@ export interface DecodedPublicKeyCredential {
     publicKey?: Uint8Array;
     attestationObject?: DecodedAttestationObject;
     authenticatorData?: DecodedAuthData;
+    signature?: Uint8Array;
+    userHandle?: Uint8Array | null;
     clientDataJSON?: DecodedClientDataJSON;
   };
 }

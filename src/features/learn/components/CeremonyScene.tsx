@@ -150,7 +150,7 @@ function Laptop({ T, mode, step, dlgTitle, iconMarkup, extraScreen }: Props & {
                 <rect x="0.5" y="3.2" width="5" height="4" rx="0.8"/>
                 <path d="M1.5 3.2V2a1.5 1.5 0 0 1 3 0v1.2"/>
             </g>
-            <text x="240" y="93" fontSize="8.5" className="mono s-muted">https://{T.domain}</text>
+            <text x="240" y="93" fontSize="10" className="mono s-muted">https://{T.domain}</text>
 
             {/* login / registration screen */}
             <g className="scr scr-login">
@@ -214,7 +214,7 @@ function Laptop({ T, mode, step, dlgTitle, iconMarkup, extraScreen }: Props & {
                     <text x="370" y="226" fontSize="13.5" textAnchor="middle" className="disp s-ink ok-label">
                         {mode === 'login' ? T.okLogin : T.okRegister}
                     </text>
-                    <text x="370" y="245" fontSize="9.5" textAnchor="middle" className="s-muted">{T.okSub}</text>
+                    <text x="370" y="245" fontSize="10" textAnchor="middle" className="s-muted">{T.okSub}</text>
                 </g>
             </g>
         </g>
@@ -336,7 +336,7 @@ function NfcScene({ T, mode, step, className }: Props & {
                     <path d="M3.5 -3.6 a4.5 4.5 0 0 1 0 7.2"/>
                     <path d="M7 -6.6 a8.5 8.5 0 0 1 0 13.2"/>
                 </g>
-                <text x="745" y="329" fontSize="7.5" textAnchor="middle" className="mono" fill="var(--muted)" fontWeight="500" letterSpacing=".1em">NFC</text>
+                <text x="745" y="329" fontSize="10" textAnchor="middle" className="mono" fill="var(--muted)" fontWeight="500" letterSpacing=".1em">NFC</text>
                 <circle cx="759" cy="341" r="2.6" className="pad-led"/>
             </g>
 
@@ -414,7 +414,7 @@ function HelloScene({ T, mode, step, className }: Props & {
                 </g>
                 <rect x="288" y="329" width="40" height="15" rx="2.5" className="tpm"/>
                 <rect x="281" y="322" width="54" height="29" rx="5" className="tpm-ring"/>
-                <text x="308" y="339.5" fontSize="7" textAnchor="middle" className="mono tpm-text" fontWeight="600">TPM</text>
+                <text x="308" y="339.5" fontSize="10" textAnchor="middle" className="mono tpm-text" fontWeight="600">TPM</text>
                 <g className="tpm-lbl">
                     <path d="M308 351 v20" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="3 3"/>
                     <text x="308" y="386" fontSize="10.5" textAnchor="middle" className="mono" fill="var(--accent)">{T.tpmLbl}</text>
@@ -498,7 +498,7 @@ function PhoneScene({ T, mode, step, className }: Props & {
                             <rect x="321" y="129" width="98" height="98" rx="7" fill="#fff" stroke="var(--line)"/>
                             <Qr x={328} y={136} cell={4}/>
                         </g>
-                        <text x="370" y="246" fontSize="9.5" textAnchor="middle" className="s-muted">{T.qrHint}</text>
+                        <text x="370" y="246" fontSize="10" textAnchor="middle" className="s-muted">{T.qrHint}</text>
                     </g>
                 }
             />
@@ -529,14 +529,14 @@ function PhoneScene({ T, mode, step, className }: Props & {
                     </g>
                     <line x1="20" y1="56" x2="80" y2="56" className="ph-qr-scan"/>
                     <path d="M18 50 v-8 h8 M74 42 h8 v8 M82 110 v8 h-8 M26 118 h-8 v-8" className="vf"/>
-                    <text x="50" y="150" fontSize="7.5" textAnchor="middle" fill="#fff" opacity=".88">{T.phCode}</text>
+                    <text x="50" y="150" fontSize="10" textAnchor="middle" fill="#fff" opacity=".88">{T.phCode}</text>
                     <circle cx="50" cy="172" r="8" fill="none" stroke="#fff" strokeWidth="1.5" opacity=".7"/>
                 </g>
 
                 {/* biometric passkey prompt */}
                 <g className="ph-scr ph-prompt">
-                    <text x="50" y="44" fontSize="8.5" textAnchor="middle" fontWeight="600" className="s-ink">{T.domain}</text>
-                    <text x="50" y="58" fontSize="7" textAnchor="middle" className="s-muted">{T.phLoginAs}</text>
+                    <text x="50" y="44" fontSize="10" textAnchor="middle" fontWeight="600" className="s-ink">{T.domain}</text>
+                    <text x="50" y="58" fontSize="10" textAnchor="middle" className="s-muted">{T.phLoginAs}</text>
                     <circle cx="50" cy="103" r="21" className="fp-ring"/>
                     <g className="fp" transform="translate(30,80)">
                         <path d="M6 22c0-9 6-15 14-15s14 6 14 15" pathLength="100"/>
@@ -544,17 +544,17 @@ function PhoneScene({ T, mode, step, className }: Props & {
                         <path d="M16 31c0-4 1.5-7 4-7s4 3 4 7v7" pathLength="100"/>
                         <path d="M20 29v11" pathLength="100"/>
                     </g>
-                    <text x="50" y="141" fontSize="7" textAnchor="middle" className="s-muted">{T.phTouch}</text>
+                    <text x="50" y="141" fontSize="10" textAnchor="middle" className="s-muted">{T.phTouch}</text>
                     <rect x="18" y="160" width="64" height="16" rx="4" className="s-flow"/>
-                    <text x="50" y="171" fontSize="7" textAnchor="middle" fontWeight="600" className="ph-cta-txt">{T.phContinue}</text>
+                    <text x="50" y="171" fontSize="10" textAnchor="middle" fontWeight="600" className="ph-cta-txt">{T.phContinue}</text>
                 </g>
 
                 {/* passkey signed in secure element */}
                 <g className="ph-scr ph-ok">
                     <circle cx="50" cy="86" r="20" pathLength="100" className="ok-ring ph-ok-ring" strokeWidth="2"/>
                     <path d="M40 87 l7 7 l14 -15" pathLength="100" className="ph-ok-check"/>
-                    <text x="50" y="126" fontSize="8.5" textAnchor="middle" fontWeight="600" className="s-ink">{T.phSigned}</text>
-                    <text x="50" y="140" fontSize="6.5" textAnchor="middle" className="s-muted">{T.phSignedSub}</text>
+                    <text x="50" y="126" fontSize="10" textAnchor="middle" fontWeight="600" className="s-ink">{T.phSigned}</text>
+                    <text x="50" y="140" fontSize="10" textAnchor="middle" className="s-muted">{T.phSignedSub}</text>
                 </g>
             </g>
         </svg>

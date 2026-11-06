@@ -25,7 +25,7 @@ import { decodeClientDataJSON } from "@/inspector/lib/decode-clientdata";
 import type { DecodedAssertion } from "@/inspector/lib/types";
 
 const MISSING_FIELD_SUGGESTION =
-  "This doesn't look like an assertion response — did you mean to select Registration?";
+  "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.";
 
 /**
  * Decode a raw assertion response CBOR payload.

@@ -11,15 +11,19 @@ import { cn } from "@/inspector/lib/utils"
 import type { SamplePayload } from "@/inspector/data/sample-payloads"
 
 interface PayloadInputProps {
+  incomingInput?: { value: string; key: number }
   onFormatResult: (result: FormatResult | null) => void
   onRawInput?: (raw: string) => void
 }
 
-const numberFormat = new Intl.NumberFormat("en-US")
+const numberFormat = new Intl.NumberFormat("pt-BR")
 
-export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) {
+export function PayloadInput({ incomingInput, onFormatResult, onRawInput }: PayloadInputProps) {
+  const lastIncomingKey = useRef<number | undefined>(undefined)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [input, setInput] = useState("")
+  const [format, setFormat] = useState<"auto" | "base64url" | "hex" | "json">("auto")
+  const [previousInput, setPreviousInput] = useState<string | null>(null)
   const [result, setResult] = useState<FormatResult | null>(null)
 
   const detectedFormat = result?.ok ? result.format : null
@@ -41,26 +45,26 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
           onFormatResult(null)
           return
         }
-        const r = detectAndNormalize(value)
+        const r = detectAndNormalize(value, format)
         setResult(r)
         onFormatResult(r)
       }, 300),
-    [onFormatResult]
+    [onFormatResult, format]
   )
 
   useEffect(() => () => debouncedDetect.cancel(), [debouncedDetect])
 
-  const detectImmediate = useCallback((value: string) => {
+  const detectImmediate = useCallback((value: string, chosenFormat = format) => {
     debouncedDetect.cancel()
     if (!value.trim()) {
       setResult(null)
       onFormatResult(null)
       return
     }
-    const r = detectAndNormalize(value)
+    const r = detectAndNormalize(value, chosenFormat)
     setResult(r)
     onFormatResult(r)
-  }, [onFormatResult, debouncedDetect])
+  }, [onFormatResult, debouncedDetect, format])
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -84,6 +88,7 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
   const handleClear = () => {
     debouncedDetect.cancel()
     setInput("")
+    setPreviousInput(null)
     onRawInput?.("")
     setResult(null)
     onFormatResult(null)
@@ -94,11 +99,23 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
     }
   }
 
+  useEffect(() => {
+    if (!incomingInput || lastIncomingKey.current === incomingInput.key) return
+    lastIncomingKey.current = incomingInput.key
+    setFormat("auto")
+    setInput(incomingInput.value)
+    onRawInput?.(incomingInput.value)
+    detectImmediate(incomingInput.value, "auto")
+    requestAnimationFrame(adjustHeight)
+  }, [incomingInput, onRawInput, detectImmediate, adjustHeight])
+
   const handleLoadSample = (sample: SamplePayload) => {
+    setFormat("auto")
+    setPreviousInput(input)
     setInput(sample.raw)
     onRawInput?.(sample.raw)
     requestAnimationFrame(adjustHeight)
-    detectImmediate(sample.raw)
+    detectImmediate(sample.raw, "auto")
   }
 
   const hasContent = input.length > 0
@@ -118,35 +135,42 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
         <div className="flex items-center gap-2">
           <ClipboardPaste className="size-4 text-muted-foreground" aria-hidden="true" />
           <h2 id="input-heading" className="text-sm font-medium">
-            Input
+            Entrada
           </h2>
           <FormatBadge format={detectedFormat} />
+          <label className="text-xs">Formato <select aria-label="Formato de entrada" value={format} onChange={event => {
+            const next = event.target.value as typeof format; setFormat(next); debouncedDetect.cancel();
+            if (input.trim()) { const result = detectAndNormalize(input, next); setResult(result); onFormatResult(result) }
+          }}><option value="auto">Automático</option><option value="base64url">base64url</option><option value="hex">hex</option><option value="json">JSON</option></select></label>
         </div>
         <div className="flex items-center gap-1.5">
+          {previousInput !== null && <Button variant="ghost" size="sm" onClick={() => {
+            setInput(previousInput); onRawInput?.(previousInput); detectImmediate(previousInput); setPreviousInput(null)
+          }}>Desfazer exemplo</Button>}
           <SamplePayloadsMenu onSelect={handleLoadSample} />
           {hasContent && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClear}
-              aria-label="Clear input"
+              aria-label="Limpar entrada"
               className="gap-1.5 text-muted-foreground hover:text-foreground"
             >
               <Eraser className="size-3.5" />
-              Clear
+              Limpar
             </Button>
           )}
         </div>
       </div>
 
-      <p id="payload-help" className="px-4 py-2 text-sm text-muted-foreground">Paste a credential JSON, base64url or hex value, or choose a sample. Decoding happens locally in your browser.</p>
-      <Textarea aria-label="WebAuthn payload" aria-describedby="payload-help" aria-invalid={!!errorMessage}
+      <Textarea aria-label="Payload WebAuthn" aria-describedby="payload-privacy" aria-invalid={!!errorMessage}
+        onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); detectImmediate(input) } }}
         ref={textareaRef}
         value={input}
         onChange={handleChange}
         onPaste={handlePaste}
-        placeholder="Paste a base64url, hex or CBOR payload, or a full PublicKeyCredential JSON…"
-        className="min-h-[140px] max-h-[320px] resize-none rounded-none border-0 bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent"
+        placeholder="Cole JSON PublicKeyCredential, clientDataJSON, base64url ou hex…"
+        className="min-h-[140px] max-h-[320px] resize-none rounded-none border-0 bg-transparent px-4 py-3 font-mono text-base leading-relaxed focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent"
         spellCheck={false}
         autoComplete="off"
         autoCorrect="off"
@@ -158,7 +182,7 @@ export function PayloadInput({ onFormatResult, onRawInput }: PayloadInputProps) 
           <ErrorMessage error={errorMessage} />
           {hasContent && (
             <span className="ml-auto font-mono tabular-nums">
-              {numberFormat.format(input.length)} chars
+              {numberFormat.format(input.length)} caracteres
               {byteLength !== null && (
                 <>
                   <span className="mx-1.5 opacity-50">·</span>

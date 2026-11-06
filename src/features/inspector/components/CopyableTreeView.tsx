@@ -1,6 +1,11 @@
 import { useState } from "react"
 import { Copy, Check, ChevronDown, ChevronRight } from "lucide-react"
 
+const FIELD_HELP: Record<string, string> = {
+  up: "presença da pessoa", uv: "pessoa verificada", be: "elegível para backup", bs: "estado de backup", at: "dados atestados", ed: "extensões",
+};
+const COSE_HELP: Record<string, string> = { "1": "kty", "3": "alg", "-1": "crv / n", "-2": "x / e", "-3": "y" };
+
 type Leaf = string | number | boolean | null
 
 function isLeaf(value: unknown): value is Leaf {
@@ -12,7 +17,7 @@ function isLeaf(value: unknown): value is Leaf {
   )
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
 
@@ -31,9 +36,9 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      title="Copy value"
-      aria-label="Copy value"
-      className="tree-copy absolute top-0.5 right-1 hidden items-center rounded-md border border-border/60 bg-card px-1 py-0.5 text-foreground/70 opacity-0 transition-[opacity,background-color,color] group-hover/line:opacity-100 hover:bg-foreground/10 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none [@media(hover:hover)]:inline-flex"
+      title={`Copiar ${label}`}
+      aria-label={`Copiar ${label}`}
+      className="tree-copy items-center rounded-md border border-border/60 bg-card px-1 py-0.5 text-foreground/70 opacity-0 transition-[opacity,background-color,color] group-hover/line:opacity-100 hover:bg-foreground/10 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none [@media(hover:hover)]:inline-flex"
     >
       {copied ? (
         <Check className="size-3.5 text-success" />
@@ -41,17 +46,17 @@ function CopyButton({ text }: { text: string }) {
         <Copy className="size-3.5" />
       )}
     </button>
-    {copyError && <span role="alert" className="text-destructive">Copy failed; select and copy the value manually.</span>}
+    {copyError && <span role="alert" className="text-destructive">Falha na cópia; selecione o valor e copie manualmente.</span>}
     </span>
   )
 }
 
-function LeafValue({ value }: { value: Leaf }) {
+function LeafValue({ value, label }: { value: Leaf; label: string }) {
   if (value === null) {
     return (
       <span className="group/val">
         <span className="text-tree-punct italic">null</span>
-        <CopyButton text="null" />
+        <CopyButton label={label} text="null" />
       </span>
     )
   }
@@ -59,7 +64,7 @@ function LeafValue({ value }: { value: Leaf }) {
     return (
       <span className="group/val">
         <span className={value ? "text-tree-true" : "text-tree-false"}>{String(value)}</span>
-        <CopyButton text={String(value)} />
+        <CopyButton label={label} text={String(value)} />
       </span>
     )
   }
@@ -67,14 +72,14 @@ function LeafValue({ value }: { value: Leaf }) {
     return (
       <span className="group/val">
         <span className="text-tree-number tabular-nums">{value}</span>
-        <CopyButton text={String(value)} />
+        <CopyButton label={label} text={String(value)} />
       </span>
     )
   }
   return (
     <span className="group/val">
       <span className="text-tree-string break-all">"{value}"</span>
-      <CopyButton text={value} />
+      <CopyButton label={label} text={value} />
     </span>
   )
 }
@@ -92,7 +97,7 @@ function Toggle({ expanded, onToggle, summary, label }: ToggleProps) {
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
+      aria-label={`${expanded ? "Recolher" : "Expandir"} ${label}`}
       className="inline-flex items-center gap-1 rounded-md px-1 align-middle text-tree-punct transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
     >
       {expanded ? (
@@ -120,15 +125,20 @@ interface TreeRowProps {
   label: string
   labelKind: "key" | "index"
   value: unknown
+  expandAll?: boolean
+  parentLabel?: string
 }
 
-function TreeRow({ label, labelKind, value }: TreeRowProps) {
-  const [expanded, setExpanded] = useState(true)
+function TreeRow({ label, labelKind, value, expandAll, parentLabel }: TreeRowProps) {
+  const [expanded, setExpanded] = useState(expandAll ?? !["rawEntries", "rawJSON", "x5c"].includes(label))
   const container = isLeaf(value) ? null : childEntries(value)
 
   let valueNode: React.ReactNode
-  if (isLeaf(value)) {
-    valueNode = <LeafValue value={value} />
+  const foldedText = label === "rawJSON" && typeof value === "string"
+  if (foldedText) {
+    valueNode = <><Toggle label={label} expanded={expanded} onToggle={() => setExpanded(v => !v)} summary="JSON original" /><CopyButton label={label} text={value} />{expanded && <span className="block text-tree-string break-all">{value}</span>}</>
+  } else if (isLeaf(value)) {
+    valueNode = <LeafValue label={label} value={value} />
   } else if (!container) {
     valueNode = <span className="text-tree-punct">{String(value)}</span>
   } else if (container.entries.length === 0) {
@@ -136,8 +146,8 @@ function TreeRow({ label, labelKind, value }: TreeRowProps) {
   } else {
     const count = container.entries.length
     const summary = container.isArray
-      ? `[${count} ${count === 1 ? "item" : "items"}]`
-      : `{${count} ${count === 1 ? "key" : "keys"}}`
+      ? `[${count} ${count === 1 ? "item" : "itens"}]`
+      : `{${count} ${count === 1 ? "campo" : "campos"}}`
     valueNode = (
       <Toggle label={label} expanded={expanded} onToggle={() => setExpanded((v) => !v)} summary={summary} />
     )
@@ -149,15 +159,18 @@ function TreeRow({ label, labelKind, value }: TreeRowProps) {
     <div className="tree-row">
       <div className="tree-line group/line relative">
         <span className={labelKind === "key" ? "font-medium text-tree-key" : "text-tree-punct"}>
-          {label}
+          {label}{(FIELD_HELP[label] || (parentLabel === "rawEntries" && COSE_HELP[label])) && <span className="text-xs font-normal text-muted-foreground"> ({FIELD_HELP[label] || COSE_HELP[label]})</span>}
         </span>
         <span className="text-tree-punct">: </span>
         {valueNode}
+        {!isLeaf(value) && <CopyButton label={label} text={JSON.stringify(value, null, 2)} />}
       </div>
       {hasChildren && expanded && (
         <div className="tree-children">
           {container.entries.map(([key, val]) => (
             <TreeRow
+              parentLabel={label}
+              expandAll={expandAll}
               key={key}
               label={key}
               labelKind={container.isArray ? "index" : "key"}
@@ -172,13 +185,14 @@ function TreeRow({ label, labelKind, value }: TreeRowProps) {
 
 export interface CopyableTreeViewProps {
   tree: Record<string, unknown>
+  expandAll?: boolean
 }
 
-export function CopyableTreeView({ tree }: CopyableTreeViewProps) {
+export function CopyableTreeView({ tree, expandAll }: CopyableTreeViewProps) {
   return (
     <div data-testid="decode-tree" className="decode-tree">
       {Object.entries(tree).map(([key, value]) => (
-        <TreeRow key={key} label={key} labelKind="key" value={value} />
+        <TreeRow expandAll={expandAll} key={key} label={key} labelKind="key" value={value} />
       ))}
     </div>
   )

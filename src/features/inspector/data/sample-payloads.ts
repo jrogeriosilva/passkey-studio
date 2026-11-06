@@ -103,7 +103,8 @@ function buildAuthData(opts: AuthDataOptions = {}): Uint8Array {
   if (!attested) return head;
 
   const cose = buildCoseEC2P256();
-  const aaguid = fillBytes(16, aaguidFill);
+  // Public catalog identifier only; all credential/key/certificate bytes remain synthetic.
+  const aaguid = aaguidFill === 0xaa ? new Uint8Array([0x08,0x98,0x70,0x58,0xca,0xdc,0x4b,0x81,0xb6,0xe1,0x30,0xde,0x50,0xdc,0xbe,0x96]) : fillBytes(16, aaguidFill);
   const credId = fillBytes(credentialIdLength, credentialIdFill);
 
   const acdLen = aaguid.length + 2 + credId.length + cose.length;
@@ -207,43 +208,50 @@ export function getSamplePayloads(): SamplePayload[] {
   cached = [
     {
       id: "registration-packed",
-      label: "Registration · packed (ES256)",
-      description: "attestationObject with packed attestation, EC2 P-256 COSE key, AAGUID, and a sample x5c.",
+      label: "Registro · packed (ES256)",
+      description: "attestationObject sintético com COSE P-256, AAGUID do catálogo e x5c ilustrativo.",
       format: "base64url",
       raw: bytesToBase64Url(buildAttestationObjectPacked()),
     },
     {
       id: "registration-none",
-      label: "Registration · none",
-      description: "Minimal attestationObject with fmt='none' and an EC2 P-256 credential.",
+      label: "Registro · none",
+      description: "attestationObject mínimo com fmt='none' e credencial EC2 P-256.",
       format: "base64url",
       raw: bytesToBase64Url(buildAttestationObjectNone()),
     },
     {
       id: "assertion",
-      label: "Authentication · assertion",
-      description: "Assertion CBOR with authenticatorData, signature, clientDataJSON, and userHandle.",
+      label: "Autenticação · assertion CBOR",
+      description: "Assertion CBOR com authenticatorData, signature, clientDataJSON e userHandle.",
       format: "base64url",
       raw: bytesToBase64Url(buildAssertionCbor()),
     },
     {
       id: "clientdata-create",
       label: "clientDataJSON · webauthn.create",
-      description: "Base64url-encoded clientDataJSON for a registration ceremony.",
+      description: "clientDataJSON em base64url para uma cerimônia de registro.",
       format: "base64url",
       raw: utf8ToBase64Url(buildClientDataJsonCreate()),
     },
     {
+      id: "publickeycredential-authentication",
+      label: "PublicKeyCredential JSON · autenticação",
+      description: "Envelope JSON sintético de navigator.credentials.get().",
+      format: "json",
+      raw: JSON.stringify({ id: "AQID", rawId: "AQID", type: "public-key", response: { authenticatorData: bytesToBase64Url(buildAuthData()), clientDataJSON: utf8ToBase64Url(JSON.stringify({type: "webauthn.get", origin: "https://example.com", challenge: "c2FtcGxl"})), signature: bytesToBase64Url(fillBytes(70, 0x55)), userHandle: null } }, null, 2),
+    },
+    {
       id: "publickeycredential-json",
-      label: "PublicKeyCredential JSON · registration",
-      description: "Full PublicKeyCredential JSON envelope as returned by navigator.credentials.create().",
+      label: "PublicKeyCredential JSON · registro",
+      description: "Envelope JSON sintético com a estrutura de navigator.credentials.create().",
       format: "json",
       raw: buildPublicKeyCredentialRegistrationJSON(),
     },
     {
       id: "registration-packed-hex",
-      label: "Registration · packed (hex)",
-      description: "Same packed attestationObject as above, but encoded as a hex string.",
+      label: "Registro · packed (hex)",
+      description: "O exemplo packed codificado em hexadecimal.",
       format: "hex",
       raw: bytesToHex(buildAttestationObjectPacked()),
     },
