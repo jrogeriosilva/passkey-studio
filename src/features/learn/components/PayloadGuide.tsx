@@ -71,7 +71,7 @@ function DiagramFigure({ src, alt, caption }: { src: string; alt: string; captio
         onClick={e => { if (e.target === e.currentTarget) setLightbox(null) }}
         className="diagram-dialog rounded-xl border border-border bg-card p-4 text-foreground backdrop:bg-black/80">
         <button type="button" aria-label="Close" onClick={() => setLightbox(null)} className="mb-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border px-3"><X className="size-4" /></button>
-        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-h-[80vh] max-w-full rounded-lg" />}
+        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-h-[calc(100dvh-122px)] w-full rounded-lg object-contain" />}
       </dialog>
     </figure>
   )
