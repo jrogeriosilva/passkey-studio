@@ -102,8 +102,10 @@ h1 {
 }
 
 .payload-guide .diagram-dialog {
+  width: 1100px;
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
+  margin: auto;
 }
 
 .payload-guide dt {

@@ -1,5 +1,13 @@
 # Validação da aplicação única
 
+## Zoom dos diagramas do Learn — 2026-11-06
+
+- Corrigida a abertura do diálogo no canto da tela com imagem de aproximadamente 44 × 32 px. O diálogo agora fica centralizado, com largura limitada à viewport e imagem proporcional ao espaço disponível.
+- Chromium via Playwright: quatro diagramas em 1440 × 900, 390 × 844, 320 × 568 e 844 × 390, sem overflow na página ou no diálogo. Abertura por Enter, foco inicial, bloqueio de foco no conteúdo de fundo, Escape com retorno do foco, botão Close e clique no backdrop verificados.
+- Node.js 24.20.0: lint, 10 testes Node, 200 testes Vitest, build padrão e build com `VITE_BASE_PATH=/passkey-studio/` passaram. Permanece o aviso de chunk acima de 500 kB.
+- Build com a base de publicação servido por preview: zoom, navegação pelas três áreas e histórico verificados em 1440 e 390 px, sem erros JavaScript.
+- Capturas: [zoom desktop](screenshots/Aprender-zoom-desktop.png) e [zoom mobile](screenshots/Aprender-zoom-mobile.png). Mobile validado por viewport emulada; dispositivos físicos e outros navegadores não foram testados.
+
 ## Reorganização de Lab e Inspect — 2026-11-06
 
 - Node.js 24.20.0. Lint, 10 testes Node e 200 testes Vitest passaram. TypeScript e builds padrão e com `VITE_BASE_PATH=/passkey-studio/` passaram. O aviso de chunk principal acima de 500 kB permanece.
