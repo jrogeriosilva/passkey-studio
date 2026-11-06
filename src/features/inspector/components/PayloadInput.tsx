@@ -7,7 +7,7 @@ import { ErrorMessage } from "@/inspector/components/ErrorMessage"
 import { SamplePayloadsMenu } from "@/inspector/components/SamplePayloadsMenu"
 import { detectAndNormalize, type FormatResult } from "@/inspector/lib/format-detection"
 import { debounce } from "@/inspector/lib/debounce"
-import { cn } from "@/inspector/lib/utils"
+import { cn } from "../../../lib/utils"
 import type { SamplePayload } from "@/inspector/data/sample-payloads"
 
 interface PayloadInputProps {

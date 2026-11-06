@@ -6,7 +6,7 @@ import { Badge } from './ui/badge'
 import { CopyButton } from './ui/copy-button'
 import { EmptyState } from './ui/empty-state'
 import JsonDisplay from './JsonDisplay'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../lib/utils'
 
 interface Props {
   refreshKey: number

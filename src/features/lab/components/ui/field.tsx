@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 import { Label } from './label'
 
-export interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {
+interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {
   label: React.ReactNode
   htmlFor?: string
   required?: boolean

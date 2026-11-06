@@ -65,7 +65,7 @@ interface Props {
     step: Step;
 }
 
-function IsometricScene({ T, mode, step, ceremony }: Props & { ceremony: Ceremony }) {
+export function CeremonyScene({ T, mode, step, ceremony }: Props & { ceremony: Ceremony }) {
     const id = useId();
     const authPoint = ceremony === 'phone' ? [155, 240] : ceremony === 'nfc' ? [160, 250] : ceremony === 'hello' ? [330, 267] : [414, 216];
     const points = { rp: [610, 140], client: [330, 300], auth: authPoint };
@@ -159,11 +159,7 @@ function IsometricScene({ T, mode, step, ceremony }: Props & { ceremony: Ceremon
                     <text x="0" y="141" className="iso-sub">{step.phone === 'ok' ? T.phSigned : step.phone === 'prompt' ? T.phTouch : 'CTAP2 · Hybrid'}</text>
                 </g>
             </>}
-            <text x="400" y="385" className="iso-message">{packet?.label ?? step.screen.msg ?? step.t}</text>
+            <text x="400" y="385" className="iso-message">{packet?.label ?? step.message ?? step.t}</text>
         </svg>
     );
-}
-
-export function CeremonyScene({ ceremony, ...props }: Props & { ceremony: Ceremony; states: string[] }) {
-    return <IsometricScene {...props} ceremony={ceremony}/>;
 }

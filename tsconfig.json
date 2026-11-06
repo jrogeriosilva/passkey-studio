@@ -21,7 +21,9 @@
       "@/*": [
         "./src/features/*"
       ]
-    }
+    },
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": [
     "src"

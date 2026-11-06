@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 
 const alertVariants = cva(
   'flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm leading-snug animate-in fade-in-0 slide-in-from-top-1 duration-200',
@@ -31,7 +31,7 @@ const ICONS = {
   warning: TriangleAlert,
 } as const
 
-export interface AlertProps
+interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
   /** Override the default icon; pass `null` to hide it. */

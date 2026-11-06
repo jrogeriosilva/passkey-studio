@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 
 function InlineCode({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
   return (

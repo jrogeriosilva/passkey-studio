@@ -5,9 +5,9 @@ import Inspector from './features/inspector/App';
 import { appPath, routePath } from './navigation';
 
 const areas = [
-  { path: '/fido2-demo/', label: 'Learn', description: 'FIDO2 ceremonies', Component: Learn, style: 'learn' },
-  { path: '/fido2-lab/', label: 'Experiment', description: 'Credentials and challenges', Component: Lab, style: 'lab' },
-  { path: '/webauthn-decoder/', label: 'Inspect', description: 'WebAuthn payloads', Component: Inspector, style: 'inspector' },
+  { path: '/fido2-demo/', label: 'Learn', description: 'FIDO2 ceremonies', style: 'learn' },
+  { path: '/fido2-lab/', label: 'Experiment', description: 'Credentials and challenges', style: 'lab' },
+  { path: '/webauthn-decoder/', label: 'Inspect', description: 'WebAuthn payloads', style: 'inspector' },
 ];
 
 export default function App() {

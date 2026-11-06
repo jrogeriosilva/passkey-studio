@@ -10,7 +10,7 @@ type DetectedType = PayloadType | "publicKeyCredential"
 import { getSamplePayloads } from "@/inspector/data/sample-payloads"
 import type { FormatResult } from "@/inspector/lib/format-detection"
 import Base64Converter from "@/inspector/components/Base64Converter"
-import { cn } from "@/inspector/lib/utils"
+import { cn } from "../../lib/utils"
 
 const tools = [
   { id: "webauthn", label: "WebAuthn" },

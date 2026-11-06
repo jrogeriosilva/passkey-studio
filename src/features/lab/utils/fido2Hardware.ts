@@ -1,6 +1,6 @@
 import { base64url } from './crypto'
 
-export const isWebAuthnSupported = (): boolean => typeof window !== 'undefined' && !!window.PublicKeyCredential
+const isWebAuthnSupported = (): boolean => typeof window !== 'undefined' && !!window.PublicKeyCredential
 
 function validateRpId(rpId: unknown) {
   if (rpId === undefined) return

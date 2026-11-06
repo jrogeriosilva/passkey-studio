@@ -1,5 +1,5 @@
 import { Badge } from "@/inspector/components/ui/badge"
-import { cn } from "@/inspector/lib/utils"
+import { cn } from "../../../lib/utils"
 
 type InputFormat = "base64url" | "hex" | "cbor" | "json"
 

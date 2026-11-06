@@ -11,7 +11,7 @@ Use Node.js 24. Abra **http://127.0.0.1:5173/**.
 
 | Área | Recursos | Código |
 | --- | --- | --- |
-| Aprender | Cerimônias ilustradas, quatro autenticadores, português e inglês | `src/features/learn/` |
+| Aprender | Cerimônias ilustradas, quatro autenticadores, cenas isométricas e diagramas interativos | `src/features/learn/` |
 | Experimentar | Criação e assinatura, simulação e hardware, credenciais e chaves | `src/features/lab/` |
 | Inspecionar | Aba WebAuthn: attestation, assertions, CBOR, envelopes JSON e registro AAGUID; aba Base64url: conversão de texto e exibição de bytes em hexadecimal | `src/features/inspector/` |
 
@@ -26,11 +26,11 @@ npm run build
 npm run preview
 ```
 
-`npm test` executa os testes Node das cerimônias e os testes Vitest dos decodificadores e da navegação. O Lab também exige validação manual de seus fluxos. O build gera um único site em `dist/`. As três rotas recebem cópias do mesmo HTML de entrada para permitir acesso direto e atualização da página em servidores estáticos, incluindo GitHub Pages. Isso mantém uma única aplicação React e um único bundle compartilhado.
+`npm test` executa os testes Node das cerimônias e os testes Vitest de Learn, Lab, Inspector e da navegação. O Lab também exige validação manual de seus fluxos. O build gera um único site em `dist/`. As três rotas recebem cópias do mesmo HTML de entrada para permitir acesso direto e atualização da página em servidores estáticos, incluindo GitHub Pages. Isso mantém uma única aplicação React e um único bundle compartilhado.
 
 O Demo usa bytes ilustrativos. O Lab mantém chaves simuladas em localStorage apenas para desenvolvimento. O Inspector processa payloads no navegador. Dados de outras origens não são transferidos: localStorage depende da origem e credenciais WebAuthn dependem do RP ID.
 
-Histórico e documentação original: [MIGRATION.md](MIGRATION.md), [docs/origins](docs/origins). Validação: [docs/VALIDATION.md](docs/VALIDATION.md). Os repositórios originais permanecem intactos. Repositório: https://github.com/jrogeriosilva/passkey-studio.
+A interface está em inglês. Validação: [docs/VALIDATION.md](docs/VALIDATION.md). O histórico dos projetos de origem está preservado no Git. Repositório: https://github.com/jrogeriosilva/passkey-studio.
 
 ## GitHub Pages
 

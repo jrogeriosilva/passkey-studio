@@ -7,7 +7,7 @@ import { Badge } from './ui/badge'
 import { Select } from './ui/select'
 import { CopyButton } from './ui/copy-button'
 import { EmptyState } from './ui/empty-state'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../lib/utils'
 
 interface Props {
   refreshKey?: number

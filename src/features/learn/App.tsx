@@ -154,7 +154,7 @@ export default function App() {
         {view === 'sequence' ? <SequenceDiagram steps={steps} index={safeIndex} onSelect={go} playing={playing} name={M.auth} /> : <>
         <div className="scene-box">
           <div key={ceremony} className="scene-stage">
-            <CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/>
+            <CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step}/>
           </div>
           <div className="note">{M.note}</div>
         </div>
@@ -200,7 +200,7 @@ export default function App() {
     <EducationalContent T={T}/>
     <dialog ref={dialogRef} aria-label="Enlarged scene" className="scene-dialog">
       <button className="btn" onClick={() => dialogRef.current?.close()}>Close</button>
-      <div className="scene-zoom-scroll"><div><CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/></div></div>
+      <div className="scene-zoom-scroll"><div><CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step}/></div></div>
     </dialog>
   </div></div>;
 }

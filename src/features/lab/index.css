@@ -1,36 +1,9 @@
 @scope (.lab-feature) {
 
-
-
-
-
-
-:scope,
 :scope {
-  --background: #0b1120;
-  --foreground: #ebebeb;
-  --card: #141928;
-  --card-foreground: #ebebeb;
-  --popover: #141928;
-  --popover-foreground: #ebebeb;
-  --primary: #84b0ff;
   --primary-hover: #a9c8ff;
-  --primary-foreground: #0b1120;
-  --secondary: #1a2845;
-  --secondary-foreground: oklch(0.93 0.01 260);
-  --muted: #1a2845;
-  --muted-foreground: #a3adbf;
-  --accent: #1a2845;
-  --accent-foreground: oklch(0.93 0.01 260);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: #303b50;
-  --input: #3c4960;
-  --ring: #84b0ff;
-
-  /* Brand accent and semantic status colors */
   --brand: #84b0ff;
-  --brand-foreground: #0b1120;
-  --success: oklch(0.76 0.16 155);
+  --destructive: oklch(0.704 0.191 22.216);
   --warning: oklch(0.8 0.15 85);
   --info: oklch(0.78 0.12 225);
 }
@@ -40,9 +13,6 @@
     box-sizing: border-box;
   }
   :scope {
-    font-family: var(--font-sans);
-  }
-  :scope {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
@@ -50,18 +20,10 @@
     -moz-osx-font-smoothing: grayscale;
     min-width: 320px;
     min-height: 100vh;
+    width: 100%;
     margin: 0;
   }
-  :scope {
-    width: 100%;
-    min-height: 100vh;
-  }
-  ::selection {
-    background: oklch(0.62 0.13 255 / 45%);
-  }
 }
-
-.brand-mark { background: var(--brand); color: var(--brand-foreground); }
 
 /* Tree view scoped styles */
 .decode-tree-container :where(ul, li) {
@@ -104,9 +66,7 @@
 :focus-visible { outline:2px solid #84b0ff; outline-offset:3px; }
 select { min-height:44px; }
 @media (pointer:coarse) {
-  button, [data-slot="button"], .suite-actions a, footer a { min-height:44px; }
-  .suite-actions a { min-width:44px; }
-  footer a { display:inline-flex; align-items:center; }
+  button, [data-slot="button"] { min-height:44px; }
   button:has(> svg:only-child) { min-width:44px; }
 }
 
@@ -114,10 +74,6 @@ select { min-height:44px; }
 
 :scope { background-image: none; color-scheme: dark; }
 input, textarea { caret-color: #84b0ff; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-}
 
 @media (max-width: 639px), (pointer: coarse) {
   button, select, summary { min-height:44px; min-width:44px; }

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 import { getHighlighter } from '@/lab/lib/shiki'
 
 type Highlighter = Awaited<ReturnType<typeof getHighlighter>>
 
-export interface CodeEditorProps {
+interface CodeEditorProps {
   value: string
   label?: string
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void

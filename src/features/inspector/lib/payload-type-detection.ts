@@ -3,7 +3,7 @@ import { decode } from "cbor-x/decode";
 import type { PayloadType, DecodeResult } from "@/inspector/lib/types";
 import { decodePayload } from "@/inspector/lib/decode-orchestrator";
 
-export interface AutoDecodeResult {
+interface AutoDecodeResult {
   detectedType: PayloadType;
   result: DecodeResult;
 }

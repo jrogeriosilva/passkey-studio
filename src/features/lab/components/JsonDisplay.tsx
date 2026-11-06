@@ -1,6 +1,6 @@
 import { JsonTree } from './ui/json-tree'
 import { CopyButton } from './ui/copy-button'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../lib/utils'
 
 interface JsonDisplayProps {
   data: unknown
