@@ -2,7 +2,7 @@ import { appPath } from '../../navigation';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { CONTENT as T } from './data/content';
-import type { Actor, Ceremony, Mode } from './data/types';
+import type { Ceremony, Mode } from './data/types';
 import { createCeremonies } from './data/ceremonies';
 import { CeremonyScene } from './components/CeremonyScene';
 import { EducationalContent } from './components/EducationalContent';
@@ -10,9 +10,6 @@ import { SequenceDiagram } from './components/SequenceDiagram';
 import { Monitor, ListTree } from 'lucide-react';
 import { PayloadGuide } from './components/PayloadGuide';
 import { AuthenticatorIcon } from './components/AuthenticatorIcon';
-
-const positions: Record<Actor, number> = { rp: 14, client: 50, auth: 86 };
-const lanePositions: Record<Actor, number> = { rp: 0, client: 0.5, auth: 1 };
 
 const authenticators = [
     ['usb', 'tabUsb', 'tabUsbSub'], ['nfc', 'tabNfc', 'tabNfcSub'],
@@ -27,33 +24,6 @@ function onChoiceKey(event: React.KeyboardEvent<HTMLElement>) {
     event.preventDefault(); event.stopPropagation();
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (active + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : buttons.length - 1)) % buttons.length;
     buttons[next].focus(); buttons[next].click();
-}
-
-function RailNodeIcon({ actor, ceremony }: {
-    actor: Actor;
-    ceremony: Ceremony;
-}) {
-    if (actor === 'rp') {
-        return (
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2.5" y="2.5" width="11" height="4.5" rx="1"/>
-                <rect x="2.5" y="9" width="11" height="4.5" rx="1"/>
-                <circle cx="5" cy="4.75" r=".7" fill="currentColor" stroke="none"/>
-                <circle cx="5" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
-            </svg>
-        );
-    }
-    if (actor === 'client') {
-        return (
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2" y="2.5" width="12" height="11" rx="1.8"/>
-                <path d="M2 6h12"/>
-                <circle cx="4.3" cy="4.25" r=".55" fill="currentColor" stroke="none"/>
-                <circle cx="6.2" cy="4.25" r=".55" fill="currentColor" stroke="none"/>
-            </svg>
-        );
-    }
-    return <AuthenticatorIcon ceremony={ceremony}/>;
 }
 
 export default function App() {
@@ -135,20 +105,6 @@ export default function App() {
         return () => document.removeEventListener('keydown', onKey);
     }, [index, go, togglePlayback]);
 
-    const pktKey = `${ceremony}-${mode}-${index}`;
-    const pktMeta = step.pkt ? (() => {
-        const from = lanePositions[step.pkt.from];
-        const to = lanePositions[step.pkt.to];
-        const forward = to >= from;
-        return {
-            fromPct: `${from * 100}%`,
-            toPct: `${to * 100}%`,
-            segLeft: `${Math.min(from, to) * 100}%`,
-            segWidth: `${Math.abs(to - from) * 100}%`,
-            dirClass: forward ? 'fwd' : 'rev',
-        };
-    })() : null;
-
     return <div lang={T.htmlLang}>
     <div className="wrap" id="top">
 
@@ -196,34 +152,6 @@ export default function App() {
           <span>{view === 'world' ? 'Follow the ceremony' : 'Select a message to explore'}</span>
         </div>
         {view === 'sequence' ? <SequenceDiagram steps={steps} index={safeIndex} onSelect={go} playing={playing} name={M.auth} /> : <>
-        <div className="rail">
-          <div className="track">
-            {pktMeta && <i key={pktKey} className={`track-seg ${pktMeta.dirClass}`} style={{ left: pktMeta.segLeft, width: pktMeta.segWidth }}/>}
-          </div>
-          {(['rp', 'client', 'auth'] as const).map(actor => {
-              const isOn = step.who === actor;
-              const isSender = step.pkt?.from === actor;
-              const isReceiver = step.pkt?.to === actor;
-              const cls = ['node', isOn ? 'on' : '', isSender ? 'sending' : '', isReceiver ? 'receiving' : ''].filter(Boolean).join(' ');
-              return (
-                  <div key={actor} className={cls} style={{ left: `${positions[actor]}%` }}>
-                    <i><RailNodeIcon actor={actor} ceremony={ceremony}/></i>
-                    <span>{actor === 'rp' ? T.nodeRp : actor === 'client' ? T.nodeClient : M.auth}</span>
-                  </div>
-              );
-          })}
-          {step.pkt && pktMeta && (
-              <div className="pkt-lane" aria-hidden="true">
-                <div key={pktKey} className={`pkt-runner ${pktMeta.dirClass}`} style={{ '--from-x': pktMeta.fromPct, '--to-x': pktMeta.toPct } as CSSProperties}>
-                  <div className="pkt show">
-                    <i className="pkt-tail"/>
-                    <i className="pkt-dot"/>
-                    <span className="pkt-label">{step.pkt.label}</span>
-                  </div>
-                </div>
-              </div>
-          )}
-        </div>
         <div className="scene-box">
           <div key={ceremony} className="scene-stage">
             <CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/>

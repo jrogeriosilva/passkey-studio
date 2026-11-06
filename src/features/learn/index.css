@@ -2869,3 +2869,29 @@ ol.list li:not(.active) .d-wrap { visibility:hidden; }
     .payload-plate h4 { font-size: 19px; }
   }
 }
+
+@scope (.learn-feature) {
+  .scene-box .isometric-scene { max-height: 430px; }
+  .isometric-scene .iso-device { stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; }
+  .isometric-scene .iso-active { stroke: var(--flow); stroke-width: 2; }
+  .isometric-scene .iso-top { fill: var(--panel-2); }
+  .isometric-scene .iso-front { fill: var(--panel); }
+  .isometric-scene .iso-side { fill: var(--bg); }
+  .isometric-scene .iso-metal { fill: var(--muted); stroke: var(--ink); }
+  .isometric-scene .iso-sensor { fill: var(--accent-soft); stroke: var(--accent); }
+  .isometric-scene .iso-indicator { fill: var(--flow); stroke: none; }
+  .isometric-scene .iso-detail { fill: var(--flow-soft); }
+  .isometric-scene text { fill: var(--ink); stroke: none; text-anchor: middle; font-size: 15px; font-family: var(--font-body); }
+  .isometric-scene .iso-sub, .isometric-scene .iso-protocol { fill: var(--muted); font-size: 12px; }
+  .isometric-scene .iso-message { fill: var(--flow); font-family: var(--font-mono); font-size: 14px; }
+  .isometric-scene .iso-transfer { fill: none; stroke: var(--flow); stroke-width: 2; }
+  .isometric-scene .iso-packet { fill: var(--flow); offset-distance: 50%; }
+  .is-playing .iso-packet { animation: usb-packet 2s linear infinite; }
+  .isometric-scene .iso-touch { fill: var(--accent); stroke: var(--accent); }
+  @keyframes usb-packet { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .is-playing .iso-packet { animation: none; } }
+  @media (max-width: 540px) {
+    .scene-stage:has(.isometric-scene) { overflow-x: auto; }
+    .scene-box .isometric-scene { min-width: 560px; }
+  }
+}
