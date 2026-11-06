@@ -5,8 +5,9 @@
 Passkey Studio é uma única SPA Vite/React/TypeScript, com `package.json` e lockfile na raiz. Não crie subaplicações ou servidores proxy.
 
 - `src/main.tsx`: entrada; `src/App.tsx`: shell e navegação.
+- `src/lib/`: utilitários compartilhados; `src/test-setup.ts`: ambiente de testes da SPA.
 - `src/features/{learn,lab,inspector}/`: áreas e seus componentes, dados e utilitários.
-- `public/`: assets estáticos; `docs/`: documentação e capturas; `docs/origins/`: documentação histórica.
+- `public/`: assets estáticos; `docs/`: documentação e capturas atuais. O histórico anterior à consolidação está no Git.
 - `src/features/inspector/index.css`: tema Tailwind compartilhado; `src/index.css`: shell. Mantenha estilos específicos de Learn e Lab dentro de CSS `@scope`.
 
 ## Comandos de desenvolvimento

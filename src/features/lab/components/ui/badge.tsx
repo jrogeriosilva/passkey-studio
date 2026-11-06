@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 
 const badgeVariants = cva(
   'inline-flex items-center gap-1 rounded-[var(--radius-4xl)] h-5 px-2 text-xs font-medium whitespace-nowrap border border-transparent transition-colors [&>svg]:size-3',
@@ -33,7 +33,7 @@ const badgeVariants = cva(
   }
 )
 
-export interface BadgeProps
+interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
@@ -43,4 +43,4 @@ function Badge({ className, variant, ...props }: BadgeProps) {
   )
 }
 
-export { Badge, badgeVariants }
+export { Badge }

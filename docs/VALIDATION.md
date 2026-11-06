@@ -1,42 +1,49 @@
-# Validação da aplicação única
+# Validação do Passkey Studio
 
-## Zoom dos diagramas do Learn — 2026-11-06
+Limpeza pós-migração validada em 2026-11-06, com Node.js 24.20.0, npm 12.0.2 e Chromium via Playwright. O histórico anterior permanece no Git.
 
-- Corrigida a abertura do diálogo no canto da tela com imagem de aproximadamente 44 × 32 px. O diálogo agora fica centralizado, com largura limitada à viewport e imagem proporcional ao espaço disponível.
-- Chromium via Playwright: quatro diagramas em 1440 × 900, 390 × 844, 320 × 568 e 844 × 390, sem overflow na página ou no diálogo. Abertura por Enter, foco inicial, bloqueio de foco no conteúdo de fundo, Escape com retorno do foco, botão Close e clique no backdrop verificados.
-- Node.js 24.20.0: lint, 10 testes Node, 200 testes Vitest, build padrão e build com `VITE_BASE_PATH=/passkey-studio/` passaram. Permanece o aviso de chunk acima de 500 kB.
-- Build com a base de publicação servido por preview: zoom, navegação pelas três áreas e histórico verificados em 1440 e 390 px, sem erros JavaScript.
-- Capturas: [zoom desktop](screenshots/Aprender-zoom-desktop.png) e [zoom mobile](screenshots/Aprender-zoom-mobile.png). Mobile validado por viewport emulada; dispositivos físicos e outros navegadores não foram testados.
+## Análise e remoções
 
-## Reorganização de Lab e Inspect — 2026-11-06
+A revisão cruzou imports TypeScript, consumidores de exports, referências a assets, seletores CSS, classes e variáveis usadas pelos componentes, documentação e conteúdo do build. Arquivos históricos não foram tratados como dependências da aplicação atual.
 
-- Node.js 24.20.0. Lint, 10 testes Node e 200 testes Vitest passaram. TypeScript e builds padrão e com `VITE_BASE_PATH=/passkey-studio/` passaram. O aviso de chunk principal acima de 500 kB permanece.
-- Chromium no build com a base de publicação, em 1440, 390 e 320 px: navegação entre áreas, histórico, abas com teclado, cópia, rascunhos preservados e entradas longas, sem overflow horizontal nem erros de página.
-- Inspect abre WebAuthn por padrão. Payloads enviados pelo Lab e links de amostras ativam WebAuthn, mesmo com Base64url previamente selecionada. A amostra sintética de attestation foi decodificada.
-- Conversor: texto UTF-8 com espaços e quebras de linha, JSON formatado, bytes binários em hexadecimal, troca de entrada/saída, erros para entradas inválidas e descarte de resultados obsoletos ao editar.
-- Lab: criação de credencial e assinatura simuladas, com inspeção das duas respostas completas. Hardware físico e servidores externos não foram testados nesta alteração.
-- Capturas atualizadas de [Lab desktop](screenshots/Experimentar-desktop.png), [Lab mobile](screenshots/Experimentar-mobile.png), [WebAuthn desktop](screenshots/Inspecionar-desktop.png), [WebAuthn mobile](screenshots/Inspecionar-mobile.png), [Base64url desktop](screenshots/Inspecionar-base64url-desktop.png) e [Base64url mobile](screenshots/Inspecionar-base64url-mobile.png).
+- **Projetos de origem:** removidos `MIGRATION.md` e `docs/origins/`, incluindo instruções antigas de Claude/Copilot, memórias Serena, críticas importadas e configuração shadcn com aliases e caminhos obsoletos.
+- **Documentação:** removidos relatórios e capturas intermediários com fluxos, idioma e diagramas superados. README, PRODUCT e AGENTS agora descrevem os caminhos e capacidades atuais. As seis capturas abaixo foram renovadas no build de publicação.
+- **Publicação:** removidos o `404.html` que redirecionava para o antigo Lab independente, `.nojekyll`, favicons não utilizados e logos de Vite/React. O favicon ativo passou a `public/favicon.svg`. As três entradas estáticas e os caminhos públicos foram preservados.
+- **Dependências:** removidos `@base-ui-components/react`, `react-json-view-lite` e `shadcn`. O Lab usa primitivas locais; o Inspector usa `@base-ui/react` e sua própria árvore. O CSS importado de shadcn só oferecia utilitários sem consumidores. O lockfile perdeu 202 entradas, sem adicionar pacotes nem mudar as versões mantidas. Tailwind, animações, fontes, CBOR e Shiki continuam em uso.
+- **Código:** removidos `CodeBlock`, o textarea órfão do Lab, `CardFooter`, `verifySignature`, `getGeneratedKeyById`, imports e exports sem consumidores. A função `cn` foi centralizada em `src/lib/utils.ts`, e o ambiente de testes em `src/test-setup.ts`.
+- **Learn:** removidos os quatro SVGs substituídos pelos diagramas interativos, estilos e animações das antigas cenas, mapas de estados ignorados, metadados de telas que já não são renderizadas e textos sem consumidores. As mensagens exibidas pela cena atual foram preservadas em `Step.message`.
+- **CSS:** removidos tokens de gráficos/sidebar sem uso, seletores abandonados e cópias dos tokens compartilhados no Lab. Mantidos o tema comum e o isolamento de Learn/Lab por `@scope`.
+- **Prevenção:** o build TypeScript agora rejeita declarações e parâmetros não utilizados; a exceção ESLint para exportar variantes de componentes foi removida junto com esses exports.
 
-## Consolidação inicial
+A verificação final de alcançabilidade encontrou 96 arquivos TypeScript alcançáveis pela entrada da SPA ou pelos testes, sem módulos órfãos ou imports locais não resolvidos. Utilitários de protocolo e estruturas usados pela aplicação ou por verificações de regressão foram preservados.
 
-Node.js 24.20.0, Linux. Validação em 2026-11-05 (America/Sao_Paulo).
+## Verificações automatizadas
 
-- `npm run lint`: passou.
-- `npm test`: 19 testes Node das cerimônias e 175 testes Vitest passaram, totalizando 194. Dois testes novos cobrem navegação SPA, entrada direta, histórico e links com modificadores.
-- `npm run build`: TypeScript e build Vite passaram. O build possui um único index.html e entrada JavaScript, além de assets e chunks auxiliares.
-- Há apenas um package.json, lockfile e createRoot no projeto. Não há proxies ou servidores internos.
-- Browser real em desenvolvimento: navegação pelas três áreas conserva um marcador no objeto window, comprovando ausência de recarga do documento. Voltar também funciona.
-- Browser real no build final: entrada direta nas três rotas, em 1440 e 390 px, retornou HTTP 200, sem overflow horizontal e sem erros de página JavaScript.
-- Lab: geração ES256, criação de credencial simulada e assinatura de challenge passaram na aplicação integrada. Dados temporários removidos após o teste.
-- Capturas atualizadas em `docs/screenshots/`, para as três áreas em desktop e mobile.
+Passaram após uma instalação limpa com `npm ci`:
 
-Limites: hardware físico e integração com servidores externos não foram testados. A consolidação reportou 12 vulnerabilidades nas dependências (2 baixas e 10 moderadas). O build aponta um chunk principal acima de 500 kB; a divisão adicional por área pode ser feita separadamente. Os campos não persistidos reiniciam ao trocar de área.
+- `npm run lint`.
+- `npm test`: 10 testes Node de cerimônias e 202 testes Vitest, em 23 arquivos.
+- `npm run build`: TypeScript e build Vite padrão.
+- `VITE_BASE_PATH=/passkey-studio/ npm run build`: build de publicação e geração das três entradas estáticas.
 
-Os históricos Git de origem permanecem preservados e os repositórios originais não foram alterados. Estilos específicos são contidos por CSS @scope; os navegadores de destino precisam suportar esse recurso.
+No build padrão, o CSS passou de **115,13 kB para 87,09 kB**, redução aproximada de **24%**. O JavaScript principal passou de 713,74 kB para 711,61 kB. Os valores são tamanhos minificados sem gzip, reportados pelo Vite.
 
-## Preparação do GitHub Pages
+## Navegador
 
-- Build com `VITE_BASE_PATH=/passkey-studio/`.
-- Teste adicional da navegação e histórico sob a base do projeto: total de 195 testes (19 Node e 176 Vitest).
-- Entradas estáticas das três rotas contêm o mesmo HTML e referências ao bundle compartilhado. Não dependem de fallback SPA ou redirecionamento por 404.
-- Workflow com validação em pull requests e publicação apenas de `main`, usando artefato Pages e autenticação OIDC.
+- As três áreas foram abertas diretamente no preview sob `/passkey-studio/`, em larguras de 1440, 390 e 320 px: HTTP 200, sem overflow horizontal nem erros JavaScript.
+- Comparação pixel a pixel das nove capturas iniciais anteriores à limpeza com o build final: **zero pixels diferentes**, usando Chromium com movimento reduzido e as mesmas dimensões.
+- Navegação entre áreas e histórico preservaram um marcador em `window`, confirmando que a SPA não recarrega o documento e mantém a base de publicação.
+- Comparação das 72 etapas com a versão anterior no Git: campos ativos, mensagens e dados de protocolo renderizados idênticos.
+- Learn: 24 combinações de quatro autenticadores, dois modos e três larguras. Todas as etapas foram selecionadas, as cenas renderizaram e a sequência mostrou os eventos até a etapa ativa. Reinício, seleção por teclado e abertura/fechamento do zoom com Escape passaram.
+- Inspect: conversão de texto UTF-8 para base64url e retorno via Swap, além da seleção de abas por teclado, passaram no build publicado.
+- Lab: criação e assinatura simuladas, seleção da credencial e envio das duas respostas ao Inspect passaram. A assertion foi decodificada sem alertas.
+
+| Área | Desktop: 1440 × 900 | Mobile: 390 × 900 |
+| --- | --- | --- |
+| Learn | [Captura](screenshots/Aprender-desktop.png) | [Captura](screenshots/Aprender-mobile.png) |
+| Experiment | [Captura](screenshots/Experimentar-desktop.png) | [Captura](screenshots/Experimentar-mobile.png) |
+| Inspect | [Captura](screenshots/Inspecionar-desktop.png) | [Captura](screenshots/Inspecionar-mobile.png) |
+
+## Limites
+
+Hardware físico, servidores externos e outros navegadores não foram testados. Mobile foi validado por viewport emulada. O build ainda informa um chunk principal acima de 500 kB. A instalação limpa reportou sete vulnerabilidades moderadas nas dependências mantidas, contra doze antes da limpeza; não foram aplicadas atualizações de versão nesta tarefa.

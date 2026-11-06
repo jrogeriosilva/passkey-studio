@@ -7,7 +7,7 @@ import { DecodeTreeView } from "@/inspector/components/DecodeTreeView"
 import { Badge } from "@/inspector/components/ui/badge"
 import { Button } from "@/inspector/components/ui/button"
 import { payloadTypeLabel } from "@/inspector/lib/payload-type-detection"
-import { cn } from "@/inspector/lib/utils"
+import { cn } from "../../../lib/utils"
 
 type DetectedType = PayloadType | "publicKeyCredential"
 

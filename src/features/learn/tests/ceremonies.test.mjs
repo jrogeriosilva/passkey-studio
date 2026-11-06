@@ -11,8 +11,8 @@ for (const [ceremony, count] of Object.entries({ usb: 8, nfc: 8, hello: 9, phone
       const definition = createCeremonies(CONTENT)[ceremony]
       const steps = definition.steps(mode)
       assert.equal(steps.length, count)
-      assert.equal(steps[0].screen.type, 'login')
-      assert.equal(steps.at(-1).screen.type, 'ok')
+      assert.equal(steps[0].st, 'idle')
+      assert.equal(steps.at(-1).st, 'done')
       assert.match(renderToStaticMarkup(steps[0].data), new RegExp(`/webauthn/${mode}/options`))
       assert.match(renderToStaticMarkup(steps[2].data), new RegExp(mode === 'login' ? 'webauthn.get' : 'webauthn.create'))
       assert.match(renderToStaticMarkup(steps.at(-2).data), new RegExp(`/webauthn/${mode}/verify`))
@@ -20,10 +20,9 @@ for (const [ceremony, count] of Object.entries({ usb: 8, nfc: 8, hello: 9, phone
       for (const step of steps) {
         assert.ok(step.t && step.d && step.data)
         assert.ok(!renderToStaticMarkup(step.data).includes('undefined'))
-        assert.ok(Array.isArray(definition.states[step.st]), `Missing visual state: ${step.st}`)
         if (step.pkt) for (const actor of [step.pkt.from, step.pkt.to]) assert.ok(['rp', 'client', 'auth'].includes(actor))
       }
-      if (ceremony === 'phone') assert.equal(steps[3].screen.type, 'qr')
+      if (ceremony === 'phone') assert.equal(steps[3].st, 'qr')
     })
   }
 }

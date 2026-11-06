@@ -1,6 +1,6 @@
 import { CopyableTreeView } from "@/inspector/components/CopyableTreeView"
 
-export interface DecodeTreeViewProps {
+interface DecodeTreeViewProps {
   tree: Record<string, unknown>;
   expandAll?: boolean;
 }

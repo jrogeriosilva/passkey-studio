@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 
 // Syntax colors (One-Dark palette per spec)
 const COLORS = {

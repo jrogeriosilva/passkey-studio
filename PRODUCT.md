@@ -35,8 +35,8 @@ No Lab, o fluxo documentado consiste em obter um challenge do servidor em teste,
 ### FIDO2 Demo
 
 - Demonstra chave USB, chave NFC, Windows Hello/TPM e passkey no smartphone.
-- Oferece seleção de etapas, reprodução automática, pausa, avanço, retorno e reinício.
-- Possui português e inglês, com preferência persistida no navegador.
+- Oferece cenas isométricas, diagrama de sequência, seleção de etapas, reprodução automática, pausa, avanço, retorno e reinício.
+- Inclui guia de payloads com diagramas interativos; a interface usa inglês.
 - Os bytes são ilustrativos; a demonstração não chama `navigator.credentials`.
 
 ### FIDO2 Lab
@@ -61,11 +61,12 @@ A marca do produto é Passkey Studio. As áreas são Aprender, Experimentar e In
 
 ## Evidências disponíveis
 
-- `fido2-demo/README.md`, `src/App.tsx`, `src/data/` e `tests/`, dentro dessa aplicação: documentação, cerimônias, traduções e testes da demonstração.
-- `fido2-lab/README.md` e `src/utils/`, dentro dessa aplicação: fluxo de testes, persistência e implementação dos modos simulado e hardware.
-- `webauthn-decoder/README.md`, `src/lib/` e `src/data/aaguid-registry.json`, dentro dessa aplicação: formatos, decodificadores e registro de autenticadores.
+- `src/features/learn/`: cenas, diagramas, conteúdo e testes das cerimônias.
+- `src/features/lab/`: fluxos de registro e autenticação, persistência e testes dos modos simulado e hardware.
+- `src/features/inspector/`: formatos, decodificadores, registro de AAGUIDs e testes de inspeção.
+- [README.md](README.md): desenvolvimento e publicação; [docs/VALIDATION.md](docs/VALIDATION.md): verificações e limites atuais.
 
-As capacidades acima foram identificadas na documentação e no código existente; esta inicialização não executou testes funcionais nem validou compatibilidade com servidores externos. Não há métricas de adoção, depoimentos ou comprovação de certificação fornecidos para uso em conteúdo do produto.
+Não há métricas de adoção, depoimentos ou comprovação de certificação fornecidos para uso em conteúdo do produto.
 
 ## Princípios do produto
 
@@ -76,7 +77,7 @@ As capacidades acima foram identificadas na documentação e no código existent
 
 ## Acessibilidade e inclusão
 
-O Demo já inclui atalhos de teclado, controles com rótulos acessíveis e respeito à preferência de movimento reduzido. Preservar esses recursos. Português e inglês estão disponíveis no Demo; não presumir que a mesma cobertura de idiomas exista nas demais aplicações.
+Learn inclui atalhos de teclado, controles com rótulos acessíveis e respeito à preferência de movimento reduzido. Preservar esses recursos em todas as áreas. A interface atual é em inglês.
 
 Um padrão formal de conformidade de acessibilidade para o conjunto ainda não foi definido.
 

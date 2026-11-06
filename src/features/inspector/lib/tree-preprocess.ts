@@ -1,6 +1,6 @@
 /**
  * Tree preprocessing pipeline: transforms typed DecodeResult objects
- * into display-ready plain JSON for react-json-view-lite rendering.
+ * into display-ready plain JSON for tree rendering.
  *
  * Applies display rules from 03-UI-SPEC.md §Pre-Processing Display Rules:
  * - Uint8Array -> hex string
@@ -255,7 +255,7 @@ export function preprocessForTree(result: DecodeResult, encoding: "hex" | "base6
 
   /**
    * Main preprocessing entry point.
-   * Transforms a DecodeResult into a display-ready plain object for react-json-view-lite.
+   * Transforms a DecodeResult into a display-ready plain object for the tree view.
    */
   if (!result.ok) {
     return { tree: {} };

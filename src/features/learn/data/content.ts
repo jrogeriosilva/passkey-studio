@@ -2,8 +2,7 @@ import { createElement } from 'react';
 import type { Mode } from './types.ts';
 
 export const CONTENT = {
-    htmlLang: 'en', title: 'FIDO2 Ceremonies',
-    metaDesc: 'Interactive demonstration of the FIDO2/WebAuthn registration and authentication ceremonies.',
+    htmlLang: 'en',
     h1: 'FIDO2 ceremonies, step by step',
     lede: ['Compare ', createElement('strong', { key: 0 }, 'four authenticators'), ' in registration and authentication. Choose a ceremony and play its steps.'],
     ariaAuth: 'Authenticator', ariaMode: 'Ceremony type', ariaStage: 'Animation stage',
@@ -30,21 +29,16 @@ export const CONTENT = {
     disclaimer: ["This page is a purely graphical demonstration. No real call to ", createElement('code', { key: 0 }, "navigator.credentials"), " is made, and the bytes shown are illustrative. The steps follow the structure of the WebAuthn (W3C) and CTAP2 (FIDO Alliance) specifications."],
     /* scene */
     domain: 'bank.example', rpHashNote: 'SHA-256 of "bank.example"',
-    scrHello: 'Hi, Ana. Sign in to your account securely.',
-    loginBtn: 'Sign in with passkey', registerBtn: 'Create passkey',
-    loadingMsg: 'Waiting for the server',
-    okLogin: 'Signed in', okRegister: 'Passkey created', okSub: 'Welcome back, Ana',
-    keySigned: 'signed', keyCreated: 'key created', tpmLbl: 'private key: never leaves the TPM 2.0', tunnelLbl: 'encrypted tunnel',
+
+    keySigned: 'signed', keyCreated: 'key created', tunnelLbl: 'encrypted tunnel',
     keyHint: 'touch the key', tapConfirmed: 'presence confirmed · UP=1',
-    nfcHint: 'hold the key near the reader', nfcHold: 'keep the key over the reader', nfcUp: 'presence by tapping · UP=1',
-    qrTitle: 'Use your phone', qrHint: 'Point your phone camera at the code', bleLbl: 'BLE: same room',
-    phCode: 'Code detected', phLoginAs: 'Sign in as ana?', phTouch: 'Touch the sensor', phContinue: 'Continue', phSigned: 'Signed', phSignedSub: 'the key never left the phone',
-    ariaUsb: 'USB key being inserted into a laptop', ariaNfc: 'Security key held over an NFC reader wired to a laptop', ariaHello: 'Windows Hello recognizing a face with the key in the TPM', ariaPhone: 'Smartphone scanning the QR code on a laptop',
+    bleLbl: 'BLE: same room',
+    phTouch: 'Touch the sensor', phSigned: 'Signed',
     /* ceremonies */
-    usb: { name: 'a USB key', auth: 'USB key', dlg: 'Security key', note: 'CTAP2 over USB HID · user presence by touch' },
-    nfc: { name: 'an NFC key', auth: 'NFC key', dlg: 'Security key', note: 'CTAP2 over NFC · ISO 7816-4 APDUs · user presence by tapping' },
-    hello: { name: 'Windows Hello', auth: 'Windows Hello · TPM', dlg: 'Windows Hello', note: 'Platform authenticator · local biometric verification' },
-    phone: { name: 'a smartphone', auth: 'Smartphone', dlg: 'Use a phone', note: 'Hybrid transport · QR + Bluetooth LE + encrypted tunnel' },
+    usb: { name: 'a USB key', auth: 'USB key', note: 'CTAP2 over USB HID · user presence by touch' },
+    nfc: { name: 'an NFC key', auth: 'NFC key', note: 'CTAP2 over NFC · ISO 7816-4 APDUs · user presence by tapping' },
+    hello: { name: 'Windows Hello', auth: 'Windows Hello · TPM', note: 'Platform authenticator · local biometric verification' },
+    phone: { name: 'a smartphone', auth: 'Smartphone', note: 'Hybrid transport · QR + Bluetooth LE + encrypted tunnel' },
     /* shared steps */
     request: {
         tLogin: 'User asks to sign in', tReg: 'User asks to create a passkey',

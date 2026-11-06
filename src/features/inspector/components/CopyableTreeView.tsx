@@ -183,7 +183,7 @@ function TreeRow({ label, labelKind, value, expandAll, parentLabel }: TreeRowPro
   )
 }
 
-export interface CopyableTreeViewProps {
+interface CopyableTreeViewProps {
   tree: Record<string, unknown>
   expandAll?: boolean
 }

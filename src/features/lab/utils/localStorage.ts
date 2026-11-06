@@ -92,10 +92,6 @@ export const saveGeneratedKey = (keyPair: GeneratedKey): boolean => {
   }
 }
 
-export const getGeneratedKeyById = (id: string): GeneratedKey | null => {
-  return getGeneratedKeys().find(k => k.id === id) || null
-}
-
 export const markKeyAsUsed = (id: string): boolean => {
   try {
     const keys = getGeneratedKeys()

@@ -1,11 +1,9 @@
 import { StorageTools } from './components/StorageTools'
 import { useEffect, useState } from 'react'
 import {
-  Cpu,
   Database,
   KeyRound,
   Signature,
-  Usb,
   type LucideIcon,
 } from 'lucide-react'
 import CreateCredentialForm from './components/CreateCredentialForm'
@@ -13,7 +11,7 @@ import SigningPanel from './components/SigningPanel'
 import AssertionDisplay from './components/AssertionDisplay'
 import KeyGeneratorButton from './components/KeyGeneratorButton'
 import CredentialManager from './components/CredentialManager'
-import { cn } from './lib/utils'
+import { cn } from '../../lib/utils'
 import { Select } from './components/ui/select'
 import { Alert } from './components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'

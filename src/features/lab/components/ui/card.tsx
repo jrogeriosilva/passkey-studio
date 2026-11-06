@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lab/lib/utils'
+import { cn } from '../../../../lib/utils'
 
 function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -47,13 +47,4 @@ function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return <div className={cn('px-5 py-5', className)} {...props} />
 }
 
-function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn('flex items-center gap-2 border-t border-[var(--border)] px-5 py-3', className)}
-      {...props}
-    />
-  )
-}
-
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
+export { Card, CardHeader, CardTitle, CardDescription, CardContent }

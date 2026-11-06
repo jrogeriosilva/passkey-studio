@@ -74,20 +74,6 @@ export const signData = async (
   throw new Error(`Unsupported algorithm: ${algorithm}`)
 }
 
-export const verifySignature = async (
-  publicKey: CryptoKey,
-  signature: ArrayBuffer,
-  data: ArrayBuffer,
-  algorithm: string
-): Promise<boolean> => {
-  if (algorithm === 'RS256') {
-    return await crypto.subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, publicKey, signature, data)
-  } else if (algorithm === 'ES256') {
-    return await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, publicKey, signature, data)
-  }
-  throw new Error(`Unsupported algorithm: ${algorithm}`)
-}
-
 export const jwkToCOSE = (jwk: JsonWebKey, algorithm: string): Map<number, unknown> => {
   const coseKey = new Map<number, unknown>()
 
