@@ -1,10 +1,7 @@
+import { CredentialDiagram, AttestationDiagram, ByteDiagram, LifecycleDiagram } from "./PayloadDiagrams"
 import { appPath } from "../../../navigation"
-import { useEffect, useState, useRef, type ReactNode } from "react"
-import { ChevronDown, X, ZoomIn } from "lucide-react"
-import lifecycleImg from "@/learn/assets/fido2-webauthn-diagrams-dark/01-webauthn-credential-lifecycle-dark.svg"
-import anatomyImg from "@/learn/assets/fido2-webauthn-diagrams-dark/02-publickeycredential-anatomy-dark.svg"
-import authdataImg from "@/learn/assets/fido2-webauthn-diagrams-dark/03-authenticatordata-byte-layout-dark.svg"
-import attestationImg from "@/learn/assets/fido2-webauthn-diagrams-dark/04-attestationobject-structure-dark.svg"
+import { type ReactNode } from "react"
+import { ChevronDown } from "lucide-react"
 
 /* ---------------------------------------------------------------------------
  * Small presentational helpers shared by every section below.
@@ -36,44 +33,6 @@ function DefinitionRows({ items }: { items: [string, string][] }) {
         </div>
       ))}
     </dl>
-  )
-}
-
-type LightboxState = { src: string; alt: string } | null
-
-function DiagramFigure({ src, alt, caption }: { src: string; alt: string; caption: string }) {
-  const [lightbox, setLightbox] = useState<LightboxState>(null)
-  const dialogRef = useRef<HTMLDialogElement>(null)
-
-  useEffect(() => {
-    if (lightbox) dialogRef.current?.showModal()
-    else if (dialogRef.current?.open) dialogRef.current.close()
-  }, [lightbox])
-
-  return (
-    <figure className="max-w-prose overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm shadow-black/20">
-      <button
-        type="button"
-        onClick={() => setLightbox({ src, alt })}
-        aria-label={`Enlarge diagram: ${caption}`}
-        className="group/figure relative block w-full cursor-zoom-in p-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
-      >
-        <img src={src} alt={alt} className="w-full rounded-lg" loading="lazy" />
-        <span className="pointer-events-none absolute top-4 right-4 inline-flex items-center gap-1 rounded-md border border-border bg-background/80 px-2 py-1 text-[11px] text-muted-foreground opacity-0 backdrop-blur transition-opacity group-hover/figure:opacity-100 group-focus-visible/figure:opacity-100">
-          <ZoomIn className="size-3" aria-hidden="true" />
-          Enlarge
-        </span>
-      </button>
-      <figcaption className="border-t border-border/60 px-4 py-2 text-xs text-pretty text-muted-foreground">
-        {caption}
-      </figcaption>
-      <dialog ref={dialogRef} aria-label={caption} onCancel={() => setLightbox(null)}
-        onClick={e => { if (e.target === e.currentTarget) setLightbox(null) }}
-        className="diagram-dialog rounded-xl border border-border bg-card p-4 text-foreground backdrop:bg-black/80">
-        <button type="button" aria-label="Close" onClick={() => setLightbox(null)} className="mb-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border px-3"><X className="size-4" /></button>
-        {lightbox && <img src={lightbox.src} alt={lightbox.alt} className="max-h-[calc(100dvh-122px)] w-full rounded-lg object-contain" />}
-      </dialog>
-    </figure>
   )
 }
 
@@ -113,23 +72,22 @@ function Faq({ items }: { items: [string, string][] }) {
  * ------------------------------------------------------------------------- */
 
 export function PayloadGuide() {
-  return <details className="payload-guide mt-8 border-t border-border py-4">
-    <summary className="cursor-pointer py-3 text-lg font-semibold">Understanding FIDO2 and WebAuthn Payloads</summary>
+  return <section className="payload-guide mt-8 border-t border-border py-4" aria-labelledby="guide-heading">
     <article aria-labelledby="guide-heading" className="space-y-8 py-6 text-base leading-relaxed">
       <div className="space-y-3">
-        <h2 id="guide-heading" className="text-2xl font-semibold">A field guide to WebAuthn responses</h2>
+        <h2 id="guide-heading" className="text-2xl font-semibold">Understanding FIDO2 and WebAuthn Payloads</h2>
         <Prose>Explore the structures behind the ceremonies above. To decode and inspect a payload, open the <a className="text-primary underline" href={appPath('/webauthn-decoder/')}>Inspect</a> area of Passkey Studio.</Prose>
       </div>
       <Section id="what-is-fido2" title="FIDO2 and the credential lifecycle">
+        <LifecycleDiagram />
         <Prose>WebAuthn defines the browser API and the data the server verifies. CTAP2 defines communication with authenticators. During registration, the authenticator creates a key pair. During authentication, it uses the private key to sign authenticatorData ‖ SHA-256(clientDataJSON).</Prose>
-        <DiagramFigure src={lifecycleImg} alt="WebAuthn lifecycle: registration with create and authentication with get." caption="Registration creates the credential; authentication proves possession." />
         <DefinitionRows items={[
           ['Registration', 'navigator.credentials.create() returns attestationObject and clientDataJSON. The server links the public key and identifier to the account.'],
           ['Authentication', 'navigator.credentials.get() returns authenticatorData, signature, clientDataJSON and, optionally, userHandle.'],
         ]} />
       </Section>
       <Section id="anatomy" title="PublicKeyCredential">
-        <DiagramFigure src={anatomyImg} alt="Credential fields: id, rawId and response." caption="The envelope combines metadata and the ceremony response." />
+        <CredentialDiagram />
         <DefinitionRows items={[
           ['id / rawId', 'Credential identifier: id is base64url; rawId is binary in the API and base64url in the JSON representation.'],
           ['response.attestationObject', 'Registration CBOR map containing fmt, authData and attStmt.'],
@@ -140,7 +98,7 @@ export function PayloadGuide() {
         ]} />
       </Section>
       <Section id="attestation-object" title="attestationObject and attestation formats">
-        <DiagramFigure src={attestationImg} alt="CBOR structure containing fmt, authData and attStmt." caption="fmt identifies the format; authData contains bytes; attStmt contains the statement." />
+        <AttestationDiagram />
         <DefinitionRows items={[
           ['none', 'No attestation statement. attStmt is an empty map.'],
           ['packed', 'Compact attestation format defined by WebAuthn.'],
@@ -151,7 +109,7 @@ export function PayloadGuide() {
         ]} />
       </Section>
       <Section id="authenticator-data" title="authenticatorData: bytes and flags">
-        <DiagramFigure src={authdataImg} alt="Layout of rpIdHash, flags, signCount, attested data and extensions." caption="The outer structure is binary. The embedded COSE key and extensions use CBOR." />
+        <ByteDiagram />
         <DefinitionRows items={[
           ['rpIdHash · bytes 0–31', 'SHA-256 of the RP ID. Compare it with the hash of the domain expected by the server.'],
           ['flags · byte 32', 'UP (bit 0): user presence. UV (bit 2): user verification. BE (bit 3): backup eligibility. BS (bit 4): backup state. AT (bit 6): attested data. ED (bit 7): extensions.'],
@@ -203,5 +161,5 @@ export function PayloadGuide() {
         ]} />
       </Section>
     </article>
-  </details>
+  </section>
 }

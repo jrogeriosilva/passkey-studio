@@ -2,15 +2,14 @@ import { appPath } from '../../navigation';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { CONTENT as T } from './data/content';
-import type { Actor, Ceremony, Mode } from './data/types';
+import type { Ceremony, Mode } from './data/types';
 import { createCeremonies } from './data/ceremonies';
 import { CeremonyScene } from './components/CeremonyScene';
 import { EducationalContent } from './components/EducationalContent';
+import { SequenceDiagram } from './components/SequenceDiagram';
+import { Monitor, ListTree } from 'lucide-react';
 import { PayloadGuide } from './components/PayloadGuide';
 import { AuthenticatorIcon } from './components/AuthenticatorIcon';
-
-const positions: Record<Actor, number> = { rp: 14, client: 50, auth: 86 };
-const lanePositions: Record<Actor, number> = { rp: 0, client: 0.5, auth: 1 };
 
 const authenticators = [
     ['usb', 'tabUsb', 'tabUsbSub'], ['nfc', 'tabNfc', 'tabNfcSub'],
@@ -25,33 +24,6 @@ function onChoiceKey(event: React.KeyboardEvent<HTMLElement>) {
     event.preventDefault(); event.stopPropagation();
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (active + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : buttons.length - 1)) % buttons.length;
     buttons[next].focus(); buttons[next].click();
-}
-
-function RailNodeIcon({ actor, ceremony }: {
-    actor: Actor;
-    ceremony: Ceremony;
-}) {
-    if (actor === 'rp') {
-        return (
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2.5" y="2.5" width="11" height="4.5" rx="1"/>
-                <rect x="2.5" y="9" width="11" height="4.5" rx="1"/>
-                <circle cx="5" cy="4.75" r=".7" fill="currentColor" stroke="none"/>
-                <circle cx="5" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
-            </svg>
-        );
-    }
-    if (actor === 'client') {
-        return (
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2" y="2.5" width="12" height="11" rx="1.8"/>
-                <path d="M2 6h12"/>
-                <circle cx="4.3" cy="4.25" r=".55" fill="currentColor" stroke="none"/>
-                <circle cx="6.2" cy="4.25" r=".55" fill="currentColor" stroke="none"/>
-            </svg>
-        );
-    }
-    return <AuthenticatorIcon ceremony={ceremony}/>;
 }
 
 export default function App() {
@@ -78,6 +50,7 @@ export default function App() {
         return () => window.removeEventListener('studio:location', readLocation);
     }, []);
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const [view, setView] = useState<'world' | 'sequence'>('world');
     const [playing, setPlaying] = useState(false);
     const definition = useMemo(() => createCeremonies(T)[ceremony], [ceremony]);
     const steps = useMemo(() => definition.steps(mode), [definition, mode]);
@@ -132,20 +105,6 @@ export default function App() {
         return () => document.removeEventListener('keydown', onKey);
     }, [index, go, togglePlayback]);
 
-    const pktKey = `${ceremony}-${mode}-${index}`;
-    const pktMeta = step.pkt ? (() => {
-        const from = lanePositions[step.pkt.from];
-        const to = lanePositions[step.pkt.to];
-        const forward = to >= from;
-        return {
-            fromPct: `${from * 100}%`,
-            toPct: `${to * 100}%`,
-            segLeft: `${Math.min(from, to) * 100}%`,
-            segWidth: `${Math.abs(to - from) * 100}%`,
-            dirClass: forward ? 'fwd' : 'rev',
-        };
-    })() : null;
-
     return <div lang={T.htmlLang}>
     <div className="wrap" id="top">
 
@@ -170,47 +129,6 @@ export default function App() {
     <main className="main" style={{ '--step-dur': `${stepDuration}ms` } as CSSProperties}>
       <div className="visual-column">
       <section className={`stage ${playing ? 'is-playing' : ''}`} aria-label={T.ariaStage}>
-        <div className="rail">
-          <div className="track">
-            {pktMeta && <i key={pktKey} className={`track-seg ${pktMeta.dirClass}`} style={{ left: pktMeta.segLeft, width: pktMeta.segWidth }}/>}
-          </div>
-          {(['rp', 'client', 'auth'] as const).map(actor => {
-              const isOn = step.who === actor;
-              const isSender = step.pkt?.from === actor;
-              const isReceiver = step.pkt?.to === actor;
-              const cls = ['node', isOn ? 'on' : '', isSender ? 'sending' : '', isReceiver ? 'receiving' : ''].filter(Boolean).join(' ');
-              return (
-                  <div key={actor} className={cls} style={{ left: `${positions[actor]}%` }}>
-                    <i><RailNodeIcon actor={actor} ceremony={ceremony}/></i>
-                    <span>{actor === 'rp' ? T.nodeRp : actor === 'client' ? T.nodeClient : M.auth}</span>
-                  </div>
-              );
-          })}
-          {step.pkt && pktMeta && (
-              <div className="pkt-lane" aria-hidden="true">
-                <div key={pktKey} className={`pkt-runner ${pktMeta.dirClass}`} style={{ '--from-x': pktMeta.fromPct, '--to-x': pktMeta.toPct } as CSSProperties}>
-                  <div className="pkt show">
-                    <i className="pkt-tail"/>
-                    <i className="pkt-dot"/>
-                    <span className="pkt-label">{step.pkt.label}</span>
-                  </div>
-                </div>
-              </div>
-          )}
-        </div>
-        <div className="scene-box">
-          <div key={ceremony} className="scene-stage">
-            <CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/>
-          </div>
-          <div className="note">{M.note}</div>
-        </div>
-        <div className="current-step">
-          <div key={`${ceremony}-${mode}-${index}`} className="current-step-body">
-            <span>{index + 1} / {steps.length} · {T.tags[step.tag]}</span>
-            <h2>{step.t}</h2><p>{step.d}</p>
-          </div>
-        </div>
-        <p className="sr-only" aria-live="polite" aria-atomic="true">{safeIndex + 1} / {steps.length}. {step.t}. {step.d}</p>
         <div className="controls" aria-label="Playback: arrows to navigate, space to play">
           <button className="btn" onClick={() => go(0)}>{T.reset}</button>
           <button className="btn" disabled={index === 0} aria-keyshortcuts="ArrowLeft" onClick={() => go(safeIndex - 1)}>{T.prev}</button>
@@ -225,7 +143,30 @@ export default function App() {
           </div>
           <span className="counter" role="status">{index + 1} / {steps.length}</span>
         </div>
-        <p className="shortcuts">← → · Space: play/pause <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button></p>
+        <p className="shortcuts">← → · Space: play/pause {view === 'world' && <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button>}</p>
+        <div className="view-toolbar">
+          <div className="view-switch" role="radiogroup" aria-label="Visualization" onKeyDown={onChoiceKey}>
+            <button type="button" role="radio" aria-checked={view === 'world'} tabIndex={view === 'world' ? 0 : -1} onClick={() => setView('world')}><Monitor size={16} aria-hidden="true" />Real World</button>
+            <button type="button" role="radio" aria-checked={view === 'sequence'} tabIndex={view === 'sequence' ? 0 : -1} onClick={() => setView('sequence')}><ListTree size={16} aria-hidden="true" />Sequence</button>
+          </div>
+          <span>{view === 'world' ? 'Follow the ceremony' : 'Select a message to explore'}</span>
+        </div>
+        {view === 'sequence' ? <SequenceDiagram steps={steps} index={safeIndex} onSelect={go} playing={playing} name={M.auth} /> : <>
+        <div className="scene-box">
+          <div key={ceremony} className="scene-stage">
+            <CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/>
+          </div>
+          <div className="note">{M.note}</div>
+        </div>
+        </>}
+        <div className="current-step">
+          <div key={`${ceremony}-${mode}-${index}`} className="current-step-body">
+            <span>{index + 1} / {steps.length} · {T.tags[step.tag]}</span>
+            <h2>{step.t}</h2><p>{step.d}</p>
+          </div>
+        </div>
+        <p className="sr-only" aria-live="polite" aria-atomic="true">{safeIndex + 1} / {steps.length}. {step.t}. {step.d}</p>
+
       </section>
         <section className="data" aria-labelledby="data-title">
           <h3 id="data-title">{step.tag === 'rp' ? T.dataRp : step.tag === 'auth' ? T.dataAuth : T.dataTransit}</h3>
