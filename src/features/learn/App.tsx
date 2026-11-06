@@ -1,11 +1,12 @@
 import { appPath } from '../../navigation';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { I18N, detectLanguage } from './data/i18n';
-import type { Actor, Ceremony, Language, Mode } from './data/types';
+import { CONTENT as T } from './data/content';
+import type { Actor, Ceremony, Mode } from './data/types';
 import { createCeremonies } from './data/ceremonies';
 import { CeremonyScene } from './components/CeremonyScene';
 import { EducationalContent } from './components/EducationalContent';
+import { PayloadGuide } from './components/PayloadGuide';
 import { AuthenticatorIcon } from './components/AuthenticatorIcon';
 
 const positions: Record<Actor, number> = { rp: 14, client: 50, auth: 86 };
@@ -54,7 +55,6 @@ function RailNodeIcon({ actor, ceremony }: {
 }
 
 export default function App() {
-    const [language, setLanguage] = useState<Language>(detectLanguage);
     const [ceremony, setCeremony] = useState<Ceremony>(() => { const value = new URLSearchParams(window.location.search).get('ceremony'); return authenticators.some(([id]) => id === value) ? value as Ceremony : 'usb'; });
     const [mode, setMode] = useState<Mode>(() => new URLSearchParams(window.location.search).get('mode') === 'login' ? 'login' : 'register');
     const [position, setIndex] = useState(() => { const value = Number(new URLSearchParams(window.location.search).get('step')); return Number.isInteger(value) && value > 0 ? value - 1 : 0; });
@@ -79,21 +79,13 @@ export default function App() {
     }, []);
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [playing, setPlaying] = useState(false);
-    const T = I18N[language];
-    const definition = useMemo(() => createCeremonies(T)[ceremony], [T, ceremony]);
+    const definition = useMemo(() => createCeremonies(T)[ceremony], [ceremony]);
     const steps = useMemo(() => definition.steps(mode), [definition, mode]);
     const index = Math.min(position, steps.length - 1);
     const safeIndex = index;
     const step = steps[safeIndex];
     const M = T[ceremony];
     const stepDuration = step.dur ?? 2800;
-
-    useEffect(() => {
-        try {
-            localStorage.setItem('fido2demo.lang', language);
-        }
-        catch { /* Storage is optional. */ }
-    }, [language, T]);
 
     const go = useCallback((next: number) => {
         setPlaying(false);
@@ -140,7 +132,7 @@ export default function App() {
         return () => document.removeEventListener('keydown', onKey);
     }, [index, go, togglePlayback]);
 
-    const pktKey = `${ceremony}-${mode}-${language}-${index}`;
+    const pktKey = `${ceremony}-${mode}-${index}`;
     const pktMeta = step.pkt ? (() => {
         const from = lanePositions[step.pkt.from];
         const to = lanePositions[step.pkt.to];
@@ -162,12 +154,6 @@ export default function App() {
       <div className="head-text">
         <h1>{T.h1}</h1>
         <p className="lede">{T.lede}</p>
-      </div>
-      <div className="lang">
-        <svg className="globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13"/></svg>
-        <div className="seg" role="radiogroup" onKeyDown={onChoiceKey} aria-label={T.ariaLang}>
-          {(['pt', 'en'] as const).map(lang => <button key={lang} role="radio" tabIndex={language === lang ? 0 : -1} aria-checked={language === lang} lang={lang === 'pt' ? 'pt-BR' : 'en'} title={lang === 'pt' ? 'Português' : 'English'} onClick={() => { setPlaying(false); setLanguage(lang); }}>{lang.toUpperCase()}</button>)}
-        </div>
       </div>
     </header>
     <div className="selector">
@@ -225,12 +211,12 @@ export default function App() {
           </div>
         </div>
         <p className="sr-only" aria-live="polite" aria-atomic="true">{safeIndex + 1} / {steps.length}. {step.t}. {step.d}</p>
-        <div className="controls" aria-label={language === 'pt' ? 'Reprodução: setas para navegar, espaço para reproduzir' : 'Playback: arrows to navigate, space to play'}>
+        <div className="controls" aria-label="Playback: arrows to navigate, space to play">
           <button className="btn" onClick={() => go(0)}>{T.reset}</button>
           <button className="btn" disabled={index === 0} aria-keyshortcuts="ArrowLeft" onClick={() => go(safeIndex - 1)}>{T.prev}</button>
           <button className="btn primary" aria-keyshortcuts="Space" onClick={togglePlayback}>
             <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">{playing ? <><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></> : <path d="M4 2.5v11l9-5.5z"/>}</svg>
-            {playing ? T.pause : safeIndex === steps.length - 1 ? (language === 'pt' ? 'Repetir' : 'Replay') : T.play}
+            {playing ? T.pause : safeIndex === steps.length - 1 ? 'Replay' : T.play}
           </button>
           <button className="btn" disabled={index === steps.length - 1} aria-keyshortcuts="ArrowRight" onClick={() => go(safeIndex + 1)}>{T.next}</button>
           <div className="progress" aria-hidden="true">
@@ -239,11 +225,11 @@ export default function App() {
           </div>
           <span className="counter" role="status">{index + 1} / {steps.length}</span>
         </div>
-        <p className="shortcuts">← → · {language === 'pt' ? 'Espaço: reproduzir/pausar' : 'Space: play/pause'} <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>{language === 'pt' ? 'Ampliar cena' : 'Enlarge scene'}</button></p>
+        <p className="shortcuts">← → · Space: play/pause <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button></p>
       </section>
         <section className="data" aria-labelledby="data-title">
           <h3 id="data-title">{step.tag === 'rp' ? T.dataRp : step.tag === 'auth' ? T.dataAuth : T.dataTransit}</h3>
-          <div className="data-actions"><span>{language === 'pt' ? 'Ilustrativo' : 'Illustrative'}</span><a href={appPath('/webauthn-decoder/') + '?sample=' + (mode === 'register' ? 'publickeycredential-json' : 'publickeycredential-authentication')}>{language === 'pt' ? 'Inspecionar exemplo completo' : 'Inspecionar · complete sample'}</a></div>
+          <div className="data-actions"><span>Illustrative</span><a href={appPath('/webauthn-decoder/') + '?sample=' + (mode === 'register' ? 'publickeycredential-json' : 'publickeycredential-authentication')}>Inspect complete sample</a></div>
           <pre key={`${ceremony}-${mode}-${index}`} className="data-pre">{step.data}</pre>
         </section>
       </div>
@@ -252,7 +238,7 @@ export default function App() {
           <h2 id="steps-title">{T.stepsTitle(mode, M.name)}</h2>
           <p className="h-sub">{T.stepsSub(steps.length)}</p>
           <ol className="list">{steps.map((item, i) => <li key={i} className={i === index ? 'active' : i < index ? 'done' : ''}>
-            {(i === 0 || (i === 3) || i === steps.length - 2) && <p className="phase-label">{language === 'pt' ? (i === 0 ? 'Desafio' : i === 3 ? 'Autenticador' : 'Verificação') : (i === 0 ? 'Challenge' : i === 3 ? 'Authenticator' : 'Verification')}</p>}
+            {(i === 0 || (i === 3) || i === steps.length - 2) && <p className="phase-label">{i === 0 ? 'Challenge' : i === 3 ? 'Authenticator' : 'Verification'}</p>}
             <button aria-current={i === index ? 'step' : undefined} onClick={() => go(i)}>
               <span className="n">{String(i + 1).padStart(2, '0')}</span>
               <span className="step-copy">
@@ -269,9 +255,10 @@ export default function App() {
 
       </aside>
     </main>
+    <PayloadGuide />
     <EducationalContent T={T}/>
-    <dialog ref={dialogRef} aria-label={language === 'pt' ? 'Cena ampliada' : 'Enlarged scene'} className="scene-dialog">
-      <button className="btn" onClick={() => dialogRef.current?.close()}>{language === 'pt' ? 'Fechar' : 'Close'}</button>
+    <dialog ref={dialogRef} aria-label="Enlarged scene" className="scene-dialog">
+      <button className="btn" onClick={() => dialogRef.current?.close()}>Close</button>
       <div className="scene-zoom-scroll"><div><CeremonyScene ceremony={ceremony} T={T} mode={mode} step={step} states={definition.states[step.st] ?? []}/></div></div>
     </dialog>
   </div></div>;

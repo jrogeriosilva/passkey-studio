@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Ceremony, Mode, Step } from '../data/types';
-import type { Translations } from '../data/i18n';
+import type { Translations } from '../data/content';
 
 function seeded(n: number) {
     let s = n >>> 0;

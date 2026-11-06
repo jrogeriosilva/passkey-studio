@@ -45,14 +45,14 @@ export function detectAndNormalize(input: string, format: "auto" | "base64url" |
     };
   }
 
-  if (format === "base64url") return tryBase64url(trimmed, "caracteres inválidos");
+  if (format === "base64url") return tryBase64url(trimmed, "invalid characters");
   if (format === "hex") {
     try { return { ok: true, format: "hex", bytes: hexToBytes(trimmed) }; }
-    catch { return { ok: false, error: "Hexadecimal inválido. Use pares de dígitos de 0 a 9 e a a f." }; }
+    catch { return { ok: false, error: "Invalid hexadecimal. Use pairs of digits from 0 to 9 and a to f." }; }
   }
   if (format === "json") {
     try { JSON.parse(trimmed); return { ok: true, format: "json", bytes: new TextEncoder().encode(trimmed).buffer as ArrayBuffer }; }
-    catch { return { ok: false, error: "JSON inválido. Confira aspas, vírgulas e chaves." }; }
+    catch { return { ok: false, error: "Invalid JSON. Check quotes, commas and braces." }; }
   }
 
   // Step -1: Starts with '{' -- try to parse as JSON (PublicKeyCredential envelope)
@@ -66,7 +66,7 @@ export function detectAndNormalize(input: string, format: "auto" | "base64url" |
   }
 
   if (/[+/=]/.test(trimmed)) {
-    return { ok: false, error: "Base64 padrão detectado. Converta + para -, / para _ e remova o padding = para obter base64url." };
+    return { ok: false, error: "Standard Base64 detected. Replace + with -, / with _ and remove = padding to get base64url." };
   }
 
   // Step 0: Check for 0x/0X prefix -- definitively hex

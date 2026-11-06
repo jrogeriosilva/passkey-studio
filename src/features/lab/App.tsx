@@ -39,42 +39,42 @@ interface TabDef {
 const TABS: TabDef[] = [
   {
     id: 'create',
-    label: 'Criar credencial',
+    label: 'Create credential',
     icon: KeyRound,
-    title: 'Criar credencial',
-    description: 'Registre uma credencial com as opções PublicKeyCredentialCreationOptions do servidor.',
+    title: 'Create credential',
+    description: 'Register a credential using the PublicKeyCredentialCreationOptions from the server.',
     modeAware: true,
   },
   {
     id: 'sign',
-    label: 'Assinar',
+    label: 'Sign',
     icon: Signature,
-    title: 'Assinar',
-    description: 'Assine o challenge do servidor e produza uma assertion WebAuthn.',
+    title: 'Sign',
+    description: 'Sign the server challenge and produce a WebAuthn assertion.',
     modeAware: true,
   },
   {
     id: 'base64',
     label: 'Base64url',
     icon: Binary,
-    title: 'Conversor base64url',
-    description: 'Converta texto e bytes em base64url, a codificação usada por WebAuthn.',
+    title: 'Base64url converter',
+    description: 'Convert text and bytes to base64url, the encoding used by WebAuthn.',
     modeAware: false,
   },
   {
     id: 'attest',
-    label: 'Atestação',
+    label: 'Attestation',
     icon: ScanSearch,
-    title: 'Atestação',
-    description: 'Examine formato, dados do autenticador e declaração de um attestationObject.',
+    title: 'Attestation',
+    description: 'Examine the format, authenticator data and statement of an attestationObject.',
     modeAware: false,
   },
   {
     id: 'creds',
-    label: 'Credenciais',
+    label: 'Credentials',
     icon: Database,
-    title: 'Credenciais e chaves',
-    description: 'Dados em localStorage deste navegador: pares de chaves e credenciais de teste.',
+    title: 'Credentials and keys',
+    description: 'Data in localStorage in this browser: key pairs and test credentials.',
     modeAware: true,
   },
 ]
@@ -88,9 +88,9 @@ interface AssertionData {
 }
 
 function ModeMenu({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
-  return <label className="flex flex-col gap-1 text-sm">Modo do autenticador
+  return <label className="flex flex-col gap-1 text-sm">Authenticator mode
     <Select value={mode} onChange={event => onChange(event.target.value as Mode)} className={mode === 'simulated' ? 'text-[var(--warning)]' : 'text-[var(--success)]'}>
-      <option value="simulated">Simulado · SubtleCrypto</option>
+      <option value="simulated">Simulated · SubtleCrypto</option>
       <option value="hardware">Hardware · WebAuthn</option>
     </Select>
   </label>
@@ -135,12 +135,12 @@ export default function App() {
       <main id="top" className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 sm:gap-6 px-4 pb-12 pt-5 sm:pb-16 sm:pt-8">
 
 
-<h1 className="text-2xl font-semibold">Experimentar WebAuthn</h1>
+<h1 className="text-2xl font-semibold">Experiment with WebAuthn</h1>
         {/* Tab navigation */}
-        <nav aria-label="Ferramentas" className="min-w-0">
+        <nav aria-label="Tools" className="min-w-0">
           <div
             role="tablist"
-            aria-label="Ferramentas"
+            aria-label="Tools"
             className="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1"
           >
             {TABS.map(tab => {
@@ -201,13 +201,13 @@ export default function App() {
 
           <CardContent>
             {current.modeAware && <div className="mb-5"><Alert variant={mode === 'simulated' ? 'warning' : 'info'}>{mode === 'simulated'
-              ? 'Somente desenvolvimento e testes. O modo simulado usa SubtleCrypto e grava chaves privadas sem criptografia em localStorage. Não use credenciais de produção.'
-              : <>Hardware: navigator.credentials aciona um autenticador real. A chave privada permanece no autenticador; o RP ID deve corresponder à origem desta página.{window.location.hostname === '127.0.0.1' && <> Para desenvolvimento local, <a className="underline" href={window.location.href.replace('127.0.0.1', 'localhost')}>abra em localhost</a> e restaure o exemplo para usar um RP ID aceito pelo navegador.</>}</>}</Alert></div>}
-            <section hidden={activeTab !== 'create'} aria-label="Criar credencial">
+              ? 'For development and testing only. Simulated mode uses SubtleCrypto and stores unencrypted private keys in localStorage. Do not use production credentials.'
+              : <>Hardware: navigator.credentials calls a real authenticator. The private key stays in the authenticator; the RP ID must match this page's origin.{window.location.hostname === '127.0.0.1' && <> For local development, <a className="underline" href={window.location.href.replace('127.0.0.1', 'localhost')}>open on localhost</a> and restore the sample to use an RP ID accepted by the browser.</>}</>}</Alert></div>}
+            <section hidden={activeTab !== 'create'} aria-label="Create credential">
               <CreateCredentialForm mode={mode} onCredentialCreated={handleCredentialCreated} />
             </section>
 
-            <section hidden={activeTab !== 'sign'} aria-label="Assinar">
+            <section hidden={activeTab !== 'sign'} aria-label="Sign">
               <div className="flex flex-col gap-6">
                 <SigningPanel mode={mode} refreshKey={refreshKey} onAssertionGenerated={handleAssertionGenerated} />
                 {assertion && (
@@ -228,8 +228,8 @@ export default function App() {
                   <section className="flex flex-col gap-4">
                     <SectionHeading
                       icon={KeyRound}
-                      title="Gerador de chaves"
-                      description="Gere pares ES256 ou RS256 opcionais para credenciais simuladas."
+                      title="Key generator"
+                      description="Generate optional ES256 or RS256 key pairs for simulated credentials."
                     />
                     <KeyGeneratorButton refreshKey={refreshKey} onKeyGenerated={handleCredentialCreated} />
                   </section>
@@ -242,8 +242,8 @@ export default function App() {
                 >
                   <SectionHeading
                     icon={Database}
-                    title="Credenciais armazenadas"
-                    description="Credenciais registradas, seus metadados e chaves públicas."
+                    title="Stored credentials"
+                    description="Registered credentials, their metadata and public keys."
                   />
                   <CredentialManager refreshKey={refreshKey} />
                   <StorageTools onChange={handleCredentialCreated} />

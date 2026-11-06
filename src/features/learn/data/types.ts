@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-export type Language = 'pt' | 'en';
 export type Ceremony = 'usb' | 'nfc' | 'hello' | 'phone';
 export type Mode = 'login' | 'register';
 export type Actor = 'rp' | 'client' | 'auth';

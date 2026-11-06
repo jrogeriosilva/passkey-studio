@@ -36,9 +36,9 @@ function NodeCopyButton({ value, label }: NodeCopyButtonProps) {
     <button
       onClick={handleCopy}
       className="tree-copy ml-1.5 opacity-0 focus:opacity-100 group-hover/val:opacity-100 transition-opacity rounded px-1 py-0.5 text-[11px] hover:bg-white/10 active:bg-white/20"
-      title={`Copiar ${label}`} aria-label={`Copiar ${label}`}
+      title={`Copy ${label}`} aria-label={`Copy ${label}`}
     >
-      {error ? <span role="alert">Falha ao copiar</span> : copied ? (
+      {error ? <span role="alert">Copy failed</span> : copied ? (
         <Check size={10} className="text-green-400 inline" />
       ) : (
         <Copy size={10} className="inline" style={{ color: COLORS.punctuation }} />
@@ -88,7 +88,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
           <button type="button"
             className="flex items-center text-left cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 select-none"
             aria-expanded={expanded}
-            aria-label={`${expanded ? 'Recolher' : 'Expandir'} ${keyName ?? 'JSON'}`}
+            aria-label={`${expanded ? 'Collapse' : 'Expand'} ${keyName ?? 'JSON'}`}
             onClick={() => setExpanded(e => !e)}
           >
             <span className="mr-0.5" style={{ color: COLORS.punctuation }}>
@@ -107,7 +107,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
                 <span style={{ color: COLORS.punctuation }}>{bracket[1]}{suffix}</span>
               </>
             )}
-            {expanded && <span style={{ color: COLORS.punctuation }} className="ml-1 text-[11px]">{entries.length} {isArray ? 'itens' : 'campos'}</span>}
+            {expanded && <span style={{ color: COLORS.punctuation }} className="ml-1 text-[11px]">{entries.length} {isArray ? 'items' : 'fields'}</span>}
           </button>
           {expanded && (
             <>
@@ -138,7 +138,7 @@ function TreeNode({ keyName, value, depth, isLast }: TreeNodeProps) {
           )}
           <span>{renderValue(value)}</span>
           <span style={{ color: COLORS.punctuation }}>{suffix}</span>
-          <NodeCopyButton label={String(keyName ?? "valor")} value={valueStr} />
+          <NodeCopyButton label={String(keyName ?? "value")} value={valueStr} />
         </div>
       )}
     </div>

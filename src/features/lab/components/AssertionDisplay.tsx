@@ -48,10 +48,10 @@ export default function AssertionDisplay({ assertion }: AssertionDisplayProps) {
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--success)]/12 text-[var(--success)]">
             <Signature size={14} />
           </span>
-          <h3 className="text-sm font-semibold">Assertion gerada</h3>
+          <h3 className="text-sm font-semibold">Assertion generated</h3>
           <Badge variant="success">PublicKeyCredential</Badge>
         </div>
-        <CopyButton value={jsonString} label="Copiar tudo" />
+        <CopyButton value={jsonString} label="Copy all" />
       </div>
       <DecoderActions data={formatted} />
       <JsonDisplay data={formatted} maxHeight={600} copyable={false} />

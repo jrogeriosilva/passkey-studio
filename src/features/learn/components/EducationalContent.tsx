@@ -1,5 +1,5 @@
 import { appPath } from '../../../navigation';
-import type { Translations } from '../data/i18n';
+import type { Translations } from '../data/content';
 export function EducationalContent({ T }: {
     T: Translations;
 }) {
@@ -16,7 +16,7 @@ export function EducationalContent({ T }: {
       <div className="cta-card">
         <h3>
           <svg className="cta-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 1.8v5.4L2.6 12.9A2 2 0 0 0 4.3 16h7.4a2 2 0 0 0 1.7-3.1L10 7.2V1.8"/><path d="M5 1.8h6"/><path d="M4.1 11h7.8"/></svg>
-          Experimentar (FIDO2 Lab)
+          Experiment (FIDO2 Lab)
         </h3>
         <p>{T.ctaLabP}</p>
         <a className="btn primary" href={appPath('/fido2-lab/')}>
@@ -27,7 +27,7 @@ export function EducationalContent({ T }: {
       <div className="cta-card">
         <h3>
           <svg className="cta-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 1.5H5a2 2 0 0 0-2 2V6a2 2 0 0 1-2 2 2 2 0 0 1 2 2v2.5a2 2 0 0 0 2 2h1"/><path d="M10 1.5h1a2 2 0 0 1 2 2V6a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2.5a2 2 0 0 1-2 2h-1"/></svg>
-          Inspecionar (WebAuthn Decoder)
+          Inspect (WebAuthn Decoder)
         </h3>
         <p>{T.ctaDecP}</p>
         <a className="btn" href={appPath('/webauthn-decoder/')}>

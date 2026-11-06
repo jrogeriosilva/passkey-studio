@@ -22,7 +22,7 @@ import { parseAuthData } from "@/inspector/lib/decode-authdata";
 import type { DecodedAttestationObject } from "@/inspector/lib/types";
 
 const MISSING_FIELD_SUGGESTION =
-  "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.";
+  "Check the field structure and paste the full payload. The type is detected automatically.";
 
 /**
  * Decode a raw attestationObject CBOR payload.

@@ -25,7 +25,7 @@ function CopyButton({ value, label, className, size = 'sm', variant = 'outline',
 
   return (
     <span className="inline-flex flex-col gap-1"><Button
-      aria-label={copied ? 'Copiado' : (label || props.title || 'Copiar JSON')}
+      aria-label={copied ? 'Copied' : (label || props.title || 'Copy JSON')}
       variant={variant}
       size={size}
       className={cn('gap-1.5', className)}
@@ -37,8 +37,8 @@ function CopyButton({ value, label, className, size = 'sm', variant = 'outline',
       ) : (
         <Copy size={14} />
       )}
-      {label && <span>{copied ? 'Copiado' : label}</span>}
-    </Button>{error && <span role="alert" className="text-xs text-[var(--destructive)]">Falha ao copiar. Selecione e copie manualmente.</span>}</span>
+      {label && <span>{copied ? 'Copied' : label}</span>}
+    </Button>{error && <span role="alert" className="text-xs text-[var(--destructive)]">Copy failed. Select and copy manually.</span>}</span>
   )
 }
 

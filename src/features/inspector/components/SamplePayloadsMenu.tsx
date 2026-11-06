@@ -33,12 +33,12 @@ export function SamplePayloadsMenu({ onSelect }: SamplePayloadsMenuProps) {
           <Button
             variant="outline"
             size="sm"
-            aria-label="Carregar exemplo"
+            aria-label="Load sample"
             className="gap-1.5"
             {...props}
           >
             <FileCode2 className="size-3.5 text-primary" />
-            Carregar exemplo
+            Load sample
             <ChevronDown className="size-3.5 opacity-70 transition-transform group-aria-expanded/button:rotate-180" />
           </Button>
         )}
@@ -46,7 +46,7 @@ export function SamplePayloadsMenu({ onSelect }: SamplePayloadsMenuProps) {
       <Menu.Portal>
         <Menu.Positioner sideOffset={6} side="bottom" collisionPadding={12} align="end" className="z-50">
           <Menu.Popup className="min-w-[min(300px,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] max-h-[min(70dvh,420px)] overflow-y-auto origin-(--transform-origin) rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-xl shadow-black/40 outline-none transition-[transform,opacity] duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-            {[{ title: 'Registro · dados sintéticos', entries: samples.filter(s => s.id.startsWith('registration')) }, { title: 'Credenciais e autenticação · dados sintéticos', entries: samples.filter(s => !s.id.startsWith('registration')) }].map(group => <Menu.Group key={group.title}>
+            {[{ title: 'Registration · synthetic data', entries: samples.filter(s => s.id.startsWith('registration')) }, { title: 'Credentials and authentication · synthetic data', entries: samples.filter(s => !s.id.startsWith('registration')) }].map(group => <Menu.Group key={group.title}>
               <Menu.GroupLabel className="px-2.5 pt-1.5 pb-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
                 {group.title}
               </Menu.GroupLabel>

@@ -25,7 +25,7 @@ import { decodeClientDataJSON } from "@/inspector/lib/decode-clientdata";
 import type { DecodedAssertion } from "@/inspector/lib/types";
 
 const MISSING_FIELD_SUGGESTION =
-  "Confira a estrutura dos campos e cole o payload completo. O tipo é detectado automaticamente.";
+  "Check the field structure and paste the full payload. The type is detected automatically.";
 
 /**
  * Decode a raw assertion response CBOR payload.
