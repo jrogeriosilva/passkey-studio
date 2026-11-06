@@ -14,7 +14,7 @@ export function DecoderActions({ data }: { data: unknown }) {
   return <div className="flex flex-col gap-2 my-3">
     <div className="flex gap-2 flex-wrap items-center">
       <Button variant="secondary" onClick={copy}>Copy response for Decoder</Button>
-      <a className="inline-flex min-h-11 items-center px-3 underline underline-offset-4" href="https://jrogeriosilva.github.io/webauthn-decoder/" target="_blank" rel="noopener noreferrer">Open Decoder (new tab)</a>
+      <a className="inline-flex min-h-11 items-center px-3 underline underline-offset-4" href="/webauthn-decoder/" target="_blank" rel="noopener noreferrer">Open Decoder (new tab)</a>
     </div>
     <p className="text-sm text-[var(--muted-foreground)]" role="status">{message}</p>
   </div>

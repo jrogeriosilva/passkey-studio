@@ -1,14 +1,15 @@
 export function EcosystemNav() {
   const links = [
+    ['studio', '', 'Passkey Studio', 'Home'],
     ['demo', 'fido2-demo', 'Understand', 'FIDO2 Demo'],
     ['lab', 'fido2-lab', 'Experiment', 'FIDO2 Lab'],
     ['decoder', 'webauthn-decoder', 'Inspect', 'WebAuthn Decoder'],
   ]
   return <details className="ecosystem-disclosure">
-    <summary>FIDO2 ecosystem</summary>
-    <nav className="ecosystem-nav" aria-label="FIDO2 ecosystem">
+    <summary>Passkey Studio</summary>
+    <nav className="ecosystem-nav" aria-label="Passkey Studio">
     {links.map(([id, path, action, name]) => <a key={id}
-      href={`https://jrogeriosilva.github.io/${path}/`}
+      href={path ? `/${path}/` : "/"}
       aria-current={id === 'lab' ? 'page' : undefined}>
       <span>{action}</span><span>{name}</span>
     </a>)}

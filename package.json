@@ -1,0 +1,21 @@
+{
+  "name": "passkey-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "postinstall": "node scripts/tasks.mjs install",
+    "dev": "node scripts/tasks.mjs dev",
+    "build": "node scripts/tasks.mjs build",
+    "lint": "node scripts/tasks.mjs lint",
+    "test": "node scripts/tasks.mjs test",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "devDependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "vite": "8.3.6"
+  }
+}
