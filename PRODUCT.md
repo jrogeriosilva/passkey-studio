@@ -42,13 +42,14 @@ No Lab, o fluxo documentado consiste em obter um challenge do servidor em teste,
 ### FIDO2 Lab
 
 - Separa os modos simulado, com SubtleCrypto, e hardware, com a API WebAuthn.
-- Permite criar credenciais, assinar challenges, gerar pares de chaves ES256/RS256, inspecionar attestation e codificar/decodificar base64url.
+- Permite criar credenciais, assinar challenges e gerar pares de chaves ES256/RS256. Os resultados podem ser enviados ao Inspect para inspeção.
 - Mantém credenciais e chaves em localStorage e permite sua inspeção e exclusão.
 - O modo simulado armazena chaves privadas no navegador e destina-se a desenvolvimento e testes. Não apresentar esse armazenamento como adequado para autenticação em produção.
 - O modo hardware depende do suporte WebAuthn do navegador e do autenticador disponível.
 
 ### WebAuthn Decoder
 
+- Organiza o Inspect nas abas WebAuthn (padrão) e Base64url. A aba Base64url codifica texto e decodifica base64url em UTF-8/JSON ou hexadecimal para dados binários.
 - Decodifica respostas de registro, assertions, `clientDataJSON` e CBOR, incluindo envelopes JSON `PublicKeyCredential`.
 - Detecta formatos de entrada, interpreta rótulos COSE e consulta um registro de AAGUIDs incluído no projeto.
 - O processamento de payloads ocorre no navegador; preservar essa propriedade em futuras mudanças.

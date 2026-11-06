@@ -12,10 +12,12 @@ Use Node.js 24. Abra **http://127.0.0.1:5173/**.
 | Área | Recursos | Código |
 | --- | --- | --- |
 | Aprender | Cerimônias ilustradas, quatro autenticadores, português e inglês | `src/features/learn/` |
-| Experimentar | Criação e assinatura, simulação e hardware, chaves, base64 e attestation | `src/features/lab/` |
-| Inspecionar | Payloads WebAuthn, CBOR, envelopes JSON e registro AAGUID | `src/features/inspector/` |
+| Experimentar | Criação e assinatura, simulação e hardware, credenciais e chaves | `src/features/lab/` |
+| Inspecionar | Aba WebAuthn: attestation, assertions, CBOR, envelopes JSON e registro AAGUID; aba Base64url: conversão de texto e exibição de bytes em hexadecimal | `src/features/inspector/` |
 
-Existe um único `package.json`, lockfile, servidor Vite, ponto de entrada React e build. O cabeçalho e a navegação são compartilhados. As rotas históricas `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/` agora abrem áreas da mesma SPA. A troca de área e os botões Voltar/Avançar não recarregam o documento. Campos não persistidos são reinicializados ao trocar de área.
+Existe um único `package.json`, lockfile, servidor Vite, ponto de entrada React e build. O cabeçalho e a navegação são compartilhados. As rotas históricas `/fido2-demo/`, `/fido2-lab/` e `/webauthn-decoder/` agora abrem áreas da mesma SPA. A troca de área e os botões Voltar/Avançar não recarregam o documento. Rascunhos são mantidos em memória ao alternar entre áreas e abas, até recarregar a página.
+
+No Lab, **Inspect this payload** abre a resposta gerada na aba WebAuthn do Inspect. Para converter texto ou decodificar bytes sem interpretar uma estrutura WebAuthn, use a aba Base64url.
 
 ```sh
 npm run lint
