@@ -1,11 +1,9 @@
 import { StorageTools } from './components/StorageTools'
 import { useEffect, useState } from 'react'
 import {
-  Binary,
   Cpu,
   Database,
   KeyRound,
-  ScanSearch,
   Signature,
   Usb,
   type LucideIcon,
@@ -15,14 +13,12 @@ import SigningPanel from './components/SigningPanel'
 import AssertionDisplay from './components/AssertionDisplay'
 import KeyGeneratorButton from './components/KeyGeneratorButton'
 import CredentialManager from './components/CredentialManager'
-import Base64Decoder from './components/Base64Decoder'
-import AttestationObjectDecoder from './components/AttestationObjectDecoder'
 import { cn } from './lib/utils'
 import { Select } from './components/ui/select'
 import { Alert } from './components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 
-type Tab = 'create' | 'sign' | 'base64' | 'attest' | 'creds'
+type Tab = 'create' | 'sign' | 'creds'
 type Mode = 'simulated' | 'hardware'
 
 
@@ -52,22 +48,6 @@ const TABS: TabDef[] = [
     title: 'Sign',
     description: 'Sign the server challenge and produce a WebAuthn assertion.',
     modeAware: true,
-  },
-  {
-    id: 'base64',
-    label: 'Base64url',
-    icon: Binary,
-    title: 'Base64url converter',
-    description: 'Convert text and bytes to base64url, the encoding used by WebAuthn.',
-    modeAware: false,
-  },
-  {
-    id: 'attest',
-    label: 'Attestation',
-    icon: ScanSearch,
-    title: 'Attestation',
-    description: 'Examine the format, authenticator data and statement of an attestationObject.',
-    modeAware: false,
   },
   {
     id: 'creds',
@@ -217,10 +197,6 @@ export default function App() {
                 )}
               </div>
             </section>
-
-            <section hidden={activeTab !== 'base64'}><Base64Decoder /></section>
-
-            <section hidden={activeTab !== 'attest'}><AttestationObjectDecoder /></section>
 
             <section hidden={activeTab !== 'creds'}>
               <div className="flex flex-col gap-6">
