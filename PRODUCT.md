@@ -42,7 +42,7 @@ No Lab, o fluxo documentado consiste em obter um challenge do servidor em teste,
 ### FIDO2 Lab
 
 - Separa os modos simulado, com SubtleCrypto, e WebAuthn, com o autenticador ou provedor de passkeys selecionado pelo navegador (hardware, software ou passkeys sincronizadas).
-- Permite criar credenciais, assinar challenges e gerar pares de chaves ES256/RS256. Os resultados podem ser enviados ao Inspect para inspeção.
+- Permite criar credenciais e assinar challenges. No modo simulado, a seleção ES256/RS256 determina o novo par de chaves gerado durante cada registro. Os resultados podem ser enviados ao Inspect para inspeção.
 - Mantém credenciais simuladas, chaves de teste e metadados WebAuthn em localStorage. Remover um registro WebAuthn local não exclui a credencial do autenticador ou provedor, nem revoga o registro no servidor RP.
 - O modo simulado armazena chaves privadas no navegador e destina-se a desenvolvimento e testes. Não apresentar esse armazenamento como adequado para autenticação em produção.
 - O modo WebAuthn depende do suporte do navegador e do autenticador disponível. A página não recebe a chave privada. As respostas geradas ainda precisam ser verificadas pelo servidor RP.

@@ -9,7 +9,6 @@ import {
 import CreateCredentialForm from './components/CreateCredentialForm'
 import SigningPanel from './components/SigningPanel'
 import AssertionDisplay, { type AssertionData } from './components/AssertionDisplay'
-import KeyGeneratorButton from './components/KeyGeneratorButton'
 import CredentialManager from './components/CredentialManager'
 import { cn } from '../../lib/utils'
 import { Select } from './components/ui/select'
@@ -51,8 +50,8 @@ const TABS: TabDef[] = [
     id: 'creds',
     label: 'Credentials',
     icon: Database,
-    title: 'Credentials and keys',
-    description: 'Data in localStorage in this browser: key pairs and test credentials.',
+    title: 'Credentials',
+    description: 'Test credentials stored in localStorage in this browser.',
     modeAware: true,
   },
 ]
@@ -190,22 +189,7 @@ export default function App() {
 
             <section hidden={activeTab !== 'creds'}>
               <div className="flex flex-col gap-6">
-                {mode === 'simulated' && (
-                  <section className="flex flex-col gap-4">
-                    <SectionHeading
-                      icon={KeyRound}
-                      title="Key generator"
-                      description="Generate optional ES256 or RS256 fixtures for simulation. WebAuthn authenticators generate credential keys during registration."
-                    />
-                    <KeyGeneratorButton refreshKey={refreshKey} onKeyGenerated={handleCredentialCreated} />
-                  </section>
-                )}
-                <section
-                  className={cn(
-                    'flex flex-col gap-4',
-                    mode === 'simulated' && 'border-t border-[var(--border)] pt-6',
-                  )}
-                >
+                <section className="flex flex-col gap-4">
                   <SectionHeading
                     icon={Database}
                     title="Stored credentials"

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { CircleCheck, KeyRound, LoaderCircle } from 'lucide-react'
 import { createCredential, parseAlgorithm } from '../utils/fido2Hardware'
 import { createSimulatedCredential } from '../utils/fido2Simulator'
-import { saveCredential, getGeneratedKeys, markKeyAsUsed } from '../utils/localStorage'
+import { saveCredential } from '../utils/localStorage'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Alert } from './ui/alert'
@@ -13,7 +13,6 @@ import { Select } from './ui/select'
 import { InlineCode } from './ui/inline-code'
 import { CopyButton } from './ui/copy-button'
 import { CodeEditor } from './ui/code-editor'
-import KeyGeneratorButton from './KeyGeneratorButton'
 import { DecoderActions } from './DecoderActions'
 import JsonDisplay from './JsonDisplay'
 
@@ -45,10 +44,8 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [jsonInput, setJsonInput] = useState(JSON.stringify(DEFAULT_JSON, null, 2))
-  const [selectedKeyId, setSelectedKeyId] = useState('')
+  const [algorithm, setAlgorithm] = useState('ES256')
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
-
-  const generatedKeys = getGeneratedKeys().filter(k => !k.used)
 
   const handleCreate = async () => {
     setLoading(true)
@@ -75,14 +72,6 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
 
       if (!challengeToUse) throw new Error('Enter a challenge in the JSON options.')
 
-      let algorithm = 'ES256'
-      const params = config.pubKeyCredParams as Array<{ alg: number }> | undefined
-      if (params && params.length > 0) {
-        const supported = params.find(item => item.alg === -7 || item.alg === -257)
-        if (mode === 'simulated' && !supported) throw new Error('Simulation supports only ES256 and RS256. Use WebAuthn mode with a compatible authenticator for other algorithms.')
-        algorithm = supported?.alg === -257 ? 'RS256' : 'ES256'
-      }
-
       if (mode === 'hardware') {
         const hwCredential = await createCredential(config)
         const credential = {
@@ -102,10 +91,11 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
         setResult({ ...hwCredential })
         setSuccess('WebAuthn credential created. Send the response to the RP server for verification.')
       } else {
-        const key = generatedKeys.find(k => k.id === selectedKeyId)
-        if (selectedKeyId && !key) throw new Error('The selected key is no longer available. Choose another.')
-        if (key) algorithm = key.algorithm
-        if (params?.length && !params.some(item => item.alg === (algorithm === 'RS256' ? -257 : -7))) throw new Error('The key algorithm is not in pubKeyCredParams. Choose another key or adjust the options.')
+        const params = config.pubKeyCredParams
+        const selectedAlg = algorithm === 'RS256' ? -257 : -7
+        if (params !== undefined && (!Array.isArray(params) || !params.some(item => item?.type === 'public-key' && item.alg === selectedAlg))) {
+          throw new Error(`${algorithm} is not allowed by pubKeyCredParams. Select an allowed algorithm or adjust the creation options.`)
+        }
 
         const simCredential = await createSimulatedCredential({
           challenge: challengeToUse,
@@ -115,7 +105,6 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           userId,
           userName,
           userDisplayName,
-          existingKeyPair: key ? { publicKey: key.publicKey, privateKey: key.privateKey } : null,
           excludeCredentials: config.excludeCredentials as PublicKeyCredentialDescriptorJSON[] | undefined,
         })
         const credential = {
@@ -134,7 +123,6 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           createdAt: simCredential.createdAt,
         }
         if (!saveCredential(credential)) throw new Error('Could not save. Check browser storage.')
-        if (key && !markKeyAsUsed(key.id)) throw new Error('Credential saved, but the key could not be marked as used.')
         setResult({
           type: 'public-key',
           id: simCredential.id,
@@ -148,7 +136,6 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
         setSuccess(`Simulated credential created (${algorithm}).`)
       }
 
-      setSelectedKeyId('')
       onCredentialCreated?.()
     } catch (err) {
       setError(labError(err))
@@ -157,10 +144,23 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
     }
   }
 
-  const noKeys = generatedKeys.length === 0
-
   return (
     <div className="flex flex-col gap-5" onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); if (!loading) void handleCreate() } }}>
+      {mode === 'simulated' && (
+        <Field label="Credential algorithm" htmlFor="creation-algorithm" hint="A fresh key pair is generated during each registration. The selected algorithm must be allowed by pubKeyCredParams.">
+          <Select
+            id="creation-algorithm"
+            value={algorithm}
+            onChange={event => setAlgorithm(event.target.value)}
+            disabled={loading}
+            wrapperClassName="sm:w-64"
+            className="min-h-11"
+          >
+            <option value="ES256">ES256 · ECDSA P-256</option>
+            <option value="RS256">RS256 · RSA 2048</option>
+          </Select>
+        </Field>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button
           onClick={handleCreate}
@@ -175,40 +175,6 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           </span>
         )}
       </div>
-
-      {mode === 'simulated' && (
-        <details><summary className="cursor-pointer min-h-11 py-3 text-sm">Use a pre-generated key (optional)</summary>
-        <p className="mb-3 text-sm text-[var(--muted-foreground)]">Test fixture only. In WebAuthn registration, the authenticator generates a new credential key pair; the website does not supply the private key.</p>
-        <Field
-          label="Pre-generated key (optional)"
-          htmlFor="creation-key"
-          hint={
-            noKeys
-              ? 'A unique key will be generated automatically. Selecting one in advance is optional.'
-              : 'The selected pair will be linked to the credential and marked as used. Without a selection, a new pair will be generated.'
-          }
-        >
-          <Select
-            id="creation-key"
-            value={selectedKeyId}
-            onChange={e => setSelectedKeyId(e.target.value)}
-            className="font-mono"
-          >
-            <option value="">
-              Generate a unique key automatically
-            </option>
-            {generatedKeys.map(k => (
-              <option key={k.id} value={k.id}>
-                {k.algorithm} · {k.id} · {new Date(k.createdAt).toLocaleString('en-US')}
-              </option>
-            ))}
-          </Select>
-        </Field></details>
-      )}
-      {mode === 'simulated' && <details>
-        <summary className="cursor-pointer py-3 text-sm">Generate a test key</summary>
-        <KeyGeneratorButton refreshKey={generatedKeys.length} onKeyGenerated={key => { if (key) setSelectedKeyId(key.id); onCredentialCreated?.() }} />
-      </details>}
 
       <div className="flex flex-wrap gap-2">
         <Button variant="ghost" onClick={() => setJsonInput(JSON.stringify(DEFAULT_JSON, null, 2))}>Restore sample</Button>
