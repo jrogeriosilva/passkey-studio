@@ -10,7 +10,7 @@ import {
   jwkToCOSE,
   decodeCredentialDescriptors,
 } from './crypto'
-import type { StoredCredential, GeneratedKey } from './localStorage'
+import type { StoredCredential } from './localStorage'
 import { getCredentials } from './localStorage'
 
 const cborEncoder = new Encoder({
@@ -106,7 +106,6 @@ interface CreateSimulatedCredentialOptions {
   userId?: string
   userName?: string
   userDisplayName?: string
-  existingKeyPair?: { publicKey: JsonWebKey; privateKey: JsonWebKey } | null
   excludeCredentials?: PublicKeyCredentialDescriptorJSON[]
 }
 
@@ -118,7 +117,6 @@ export const createSimulatedCredential = async ({
   userId = 'dGVzdC11c2Vy',
   userName = 'testuser@example.com',
   userDisplayName = 'Test User',
-  existingKeyPair = null,
   excludeCredentials,
 }: CreateSimulatedCredentialOptions) => {
   const challengeEncoded = encodeChallenge(challenge)
@@ -128,17 +126,10 @@ export const createSimulatedCredential = async ({
   if (excluded?.some(descriptor => getCredentials().some(credential => credential.type === 'simulated' && credential.rpId === rpId && credential.credentialId === base64url.encode(descriptor.id)))) {
     throw new DOMException('A credential in excludeCredentials already exists for this RP.', 'InvalidStateError')
   }
-  let keyPair: CryptoKeyPair
-  if (existingKeyPair) {
-    keyPair = {
-      publicKey: await importKey(existingKeyPair.publicKey, algorithm, 'public'),
-      privateKey: await importKey(existingKeyPair.privateKey, algorithm, 'private'),
-    }
-  } else {
-    keyPair = algorithm === 'RS256'
-      ? await generateRS256KeyPair()
-      : await generateES256KeyPair()
-  }
+  if (algorithm !== 'ES256' && algorithm !== 'RS256') throw new Error('Simulation supports only ES256 and RS256.')
+  const keyPair = algorithm === 'RS256'
+    ? await generateRS256KeyPair()
+    : await generateES256KeyPair()
 
   const publicKeyJWK = await exportKey(keyPair.publicKey)
   const privateKeyJWK = await exportKey(keyPair.privateKey)
@@ -243,23 +234,5 @@ export const createSimulatedAssertion = async ({
     },
     algorithm: credential.algorithm,
     credentialId: credential.id,
-  }
-}
-
-export const generateKeyPairForStorage = async (algorithm = 'ES256'): Promise<GeneratedKey> => {
-  const keyPair = algorithm === 'RS256'
-    ? await generateRS256KeyPair()
-    : await generateES256KeyPair()
-
-  const publicKeyJWK = await exportKey(keyPair.publicKey)
-  const privateKeyJWK = await exportKey(keyPair.privateKey)
-
-  return {
-    id: generateCredentialId(),
-    algorithm,
-    publicKey: publicKeyJWK,
-    privateKey: privateKeyJWK,
-    createdAt: new Date().toISOString(),
-    used: false,
   }
 }
