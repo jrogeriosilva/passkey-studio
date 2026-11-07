@@ -30,3 +30,22 @@ test('rejects a foreign RP ID before invoking an authenticator', async () => {
   await expect(createCredential({challenge:'AQI',rp:{id:'example.invalid'},user:{id:'AQI'}})).rejects.toThrow(/RP ID/)
   expect(create).not.toHaveBeenCalled()
 })
+
+test.each(['create', 'get'] as const)('%s prefers native credential JSON serialization', async method => {
+  const apiMethods = api()
+  const json = { id: 'AQI', rawId: 'AQI', type: 'public-key', clientExtensionResults: { appid: true }, response: { clientDataJSON: 'AQI' } }
+  const toJSON = vi.fn().mockReturnValue(json)
+  apiMethods[method].mockResolvedValue({ ...credential, toJSON })
+  const config = { challenge: 'AQI', user: { id: 'AQI' } }
+  const result = await (method === 'create' ? createCredential(config) : getAssertion(config))
+  expect(result).toEqual(json)
+  expect(toJSON).toHaveBeenCalledOnce()
+})
+
+test.each(['create', 'get'] as const)('%s fallback serializes binary extension outputs recursively', async method => {
+  const apiMethods = api()
+  apiMethods[method].mockResolvedValue({ ...credential, getClientExtensionResults: () => ({ appid: true, prf: { results: { first: bytes, second: new Uint8Array([9, 3, 4, 9]).subarray(1, 3) } }, largeBlob: { blob: new ArrayBuffer(0) } }) })
+  const config = { challenge: 'AQI', user: { id: 'AQI' } }
+  const result = await (method === 'create' ? createCredential(config) : getAssertion(config))
+  expect(JSON.parse(JSON.stringify(result)).clientExtensionResults).toEqual({ appid: true, prf: { results: { first: 'AQI', second: 'AwQ' } }, largeBlob: { blob: '' } })
+})

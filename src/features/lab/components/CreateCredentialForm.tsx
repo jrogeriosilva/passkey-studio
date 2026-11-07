@@ -29,6 +29,7 @@ const DEFAULT_JSON = {
   attestation: 'direct',
   authenticatorSelection: {
     authenticatorAttachment: 'cross-platform',
+    residentKey: 'required',
     requireResidentKey: true,
     userVerification: 'required',
   },
@@ -67,7 +68,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
       const rpId = (config.rp as Record<string, string>)?.id || window.location.hostname
       const rpName = (config.rp as Record<string, string>)?.name || 'Passkey Studio'
       const user = config.user as Record<string, string> | undefined
-      const userId = user?.id || 'test-user'
+      const userId = user?.id ?? 'dGVzdC11c2Vy'
       const userName = user?.name || 'testuser@example.com'
       const userDisplayName = user?.displayName || 'Test user'
       const challengeToUse = config.challenge as string
@@ -78,7 +79,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
       const params = config.pubKeyCredParams as Array<{ alg: number }> | undefined
       if (params && params.length > 0) {
         const supported = params.find(item => item.alg === -7 || item.alg === -257)
-        if (mode === 'simulated' && !supported) throw new Error('Simulation supports only ES256 and RS256. Use hardware for other algorithms.')
+        if (mode === 'simulated' && !supported) throw new Error('Simulation supports only ES256 and RS256. Use WebAuthn mode with a compatible authenticator for other algorithms.')
         algorithm = supported?.alg === -257 ? 'RS256' : 'ES256'
       }
 
@@ -89,7 +90,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           type: 'hardware' as const,
           algorithm: hwCredential.response.publicKeyAlgorithm !== undefined ? parseAlgorithm(hwCredential.response.publicKeyAlgorithm) : 'Unknown',
           credentialId: hwCredential.rawId,
-          response: hwCredential.response,
+          response: { ...hwCredential.response },
           rpId,
           rpName,
           userId,
@@ -98,8 +99,8 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           createdAt: new Date().toISOString(),
         }
         if (!saveCredential(credential)) throw new Error('Could not save. Check browser storage.')
-        setResult(hwCredential)
-        setSuccess('Hardware credential created.')
+        setResult({ ...hwCredential })
+        setSuccess('WebAuthn credential created. Send the response to the RP server for verification.')
       } else {
         const key = generatedKeys.find(k => k.id === selectedKeyId)
         if (selectedKeyId && !key) throw new Error('The selected key is no longer available. Choose another.')
@@ -115,6 +116,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           userName,
           userDisplayName,
           existingKeyPair: key ? { publicKey: key.publicKey, privateKey: key.privateKey } : null,
+          excludeCredentials: config.excludeCredentials as PublicKeyCredentialDescriptorJSON[] | undefined,
         })
         const credential = {
           id: simCredential.id,
@@ -137,10 +139,10 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           type: 'public-key',
           id: simCredential.id,
           rawId: simCredential.rawId,
+          clientExtensionResults: simCredential.clientExtensionResults,
           response: {
             attestationObject: simCredential.response.attestationObject,
             clientDataJSON: simCredential.response.clientDataJSON,
-            type: 'public-key',
           },
         })
         setSuccess(`Simulated credential created (${algorithm}).`)
@@ -165,7 +167,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
           disabled={loading}
         >
           {loading ? <LoaderCircle size={15} className="animate-spin" /> : <KeyRound size={15} />}
-          {loading ? 'Creating…' : `Create ${mode === 'hardware' ? 'hardware' : 'simulated'} credential`}
+          {loading ? 'Creating…' : `Create ${mode === 'hardware' ? 'WebAuthn' : 'simulated'} credential`}
         </Button>
         {mode === 'hardware' && (
           <span className="text-xs text-[var(--muted-foreground)]">
@@ -176,6 +178,7 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
 
       {mode === 'simulated' && (
         <details><summary className="cursor-pointer min-h-11 py-3 text-sm">Use a pre-generated key (optional)</summary>
+        <p className="mb-3 text-sm text-[var(--muted-foreground)]">Test fixture only. In WebAuthn registration, the authenticator generates a new credential key pair; the website does not supply the private key.</p>
         <Field
           label="Pre-generated key (optional)"
           htmlFor="creation-key"
@@ -215,10 +218,9 @@ export default function CreateCredentialForm({ mode, onCredentialCreated }: Prop
         label="Creation options (JSON)"
         hint={
           <>
-            <InlineCode>PublicKeyCredentialCreationOptions</InlineCode> object.
-            The field <InlineCode>challenge</InlineCode> is required;{' '}
-            <InlineCode>rp</InlineCode>, <InlineCode>user</InlineCode> and{' '}
-            <InlineCode>pubKeyCredParams</InlineCode> are honored when present in hardware mode.
+            JSON representation of <InlineCode>PublicKeyCredentialCreationOptions</InlineCode>.
+            Encode <InlineCode>challenge</InlineCode>, <InlineCode>user.id</InlineCode> (1–64 bytes) and credential IDs as base64url without padding.
+            {mode === 'simulated' && ' Simulation returns none attestation with synthetic UP/UV flags. Authenticator selection and extensions are not simulated.'}
           </>
         }
       >

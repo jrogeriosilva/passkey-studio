@@ -47,3 +47,14 @@ No build padrão, o CSS passou de **115,13 kB para 87,09 kB**, redução aproxim
 ## Limites
 
 Hardware físico, servidores externos e outros navegadores não foram testados. Mobile foi validado por viewport emulada. O build ainda informa um chunk principal acima de 500 kB. A instalação limpa reportou sete vulnerabilidades moderadas nas dependências mantidas, contra doze antes da limpeza; não foram aplicadas atualizações de versão nesta tarefa.
+
+## Correções de protocolo e terminologia do Experiment — 2026-11-07
+
+- `npm run lint`, `npm test` (8 testes Node e 214 testes Vitest em 25 arquivos), build padrão e build com `VITE_BASE_PATH=/passkey-studio/` passaram em Node.js 24.20.0.
+- As regressões cobrem assinatura ES256 em DER, preservação dos bytes de `userHandle`, restrições de RP e allow/exclude lists, challenges e identificadores inválidos, serialização nativa/fallback de extensões e preservação desses resultados ao copiar ou inspecionar assertions.
+- No preview com a base de publicação, as assertions ES256 e RS256 geradas pela interface foram verificadas independentemente com `node:crypto`, incluindo duas assinaturas por credencial e contadores crescentes. RP incorreto, credencial fora de `allowCredentials`, exclusão de credencial existente e entradas malformadas foram rejeitados.
+- O autenticador virtual CTAP2 do Chromium passou por registro e autenticação via WebAuthn. A resposta nativa preservou `credProps`; a assinatura foi verificada com a chave pública da resposta de registro. Remover o registro local manteve a credencial no autenticador, e a autenticação discoverable continuou funcionando sem metadados locais.
+- As três abas do Experiment foram verificadas em 1440, 390 e 320 px, sem overflow horizontal ou erros JavaScript. Navegação por setas/Home e foco do formulário com Tab passaram. A interface também foi inspecionada no navegador integrado do Orca em 390 px; o detector mecânico do Impeccable não apresentou achados.
+- Os pares pregerados permanecem uma conveniência exclusiva da simulação. Flags UP/UV são sintéticas; seleção de autenticador, política de verificação de usuário e extensões não são simuladas. O modo WebAuthn não garante armazenamento em hardware; as respostas ainda exigem verificação pelo servidor RP.
+
+Essas verificações usam fixtures locais e autenticador virtual. Hardware físico e integração com servidores RP externos não foram testados. As capturas da seção anterior documentam a limpeza de 2026-11-06.

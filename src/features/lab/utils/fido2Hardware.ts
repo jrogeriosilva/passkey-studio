@@ -1,4 +1,4 @@
-import { base64url } from './crypto'
+import { base64url, decodeCredentialDescriptors } from './crypto'
 
 const isWebAuthnSupported = (): boolean => typeof window !== 'undefined' && !!window.PublicKeyCredential
 
@@ -7,14 +7,16 @@ function validateRpId(rpId: unknown) {
   const host = window.location.hostname
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(String(rpId))) throw new Error('The browser does not accept a numeric RP ID. Use localhost for development or the RP domain.')
   if (typeof rpId !== 'string' || (rpId !== host && !host.endsWith(`.${rpId}`))) {
-    throw new Error(`The RP ID must be ${host} or a valid parent domain. Open the Lab on the RP origin to use hardware.`)
+    throw new Error(`The RP ID must be ${host} or a valid parent domain. Open the Lab on an origin allowed by the RP to use WebAuthn.`)
   }
 }
 
-function descriptors(value: unknown) {
-  if (value === undefined) return undefined
-  if (!Array.isArray(value)) throw new Error('allowCredentials/excludeCredentials must be an array.')
-  return value.map(item => ({ ...item, id: base64url.decode(item.id) }))
+function extensionResults(credential: PublicKeyCredential): AuthenticationExtensionsClientOutputsJSON {
+  return JSON.parse(JSON.stringify(credential.getClientExtensionResults(), (_key, value) => {
+    if (value instanceof ArrayBuffer) return base64url.encode(value)
+    if (ArrayBuffer.isView(value)) return base64url.encode(new Uint8Array(value.buffer, value.byteOffset, value.byteLength))
+    return value
+  }))
 }
 
 export const createCredential = async (config: Record<string, unknown>) => {
@@ -30,17 +32,18 @@ export const createCredential = async (config: Record<string, unknown>) => {
     rp,
     user: { ...user, id: base64url.decode(user.id) },
     challenge: base64url.decode(config.challenge as string),
-    ...(config.excludeCredentials !== undefined ? { excludeCredentials: descriptors(config.excludeCredentials) } : {}),
+    ...(config.excludeCredentials !== undefined ? { excludeCredentials: decodeCredentialDescriptors(config.excludeCredentials) } : {}),
   } as PublicKeyCredentialCreationOptions
   const credential = await navigator.credentials.create({ publicKey: options }) as PublicKeyCredential | null
   if (!credential) throw new Error('The authenticator did not return a credential. Try again.')
+  if (typeof credential.toJSON === 'function') return credential.toJSON() as RegistrationResponseJSON
   const response = credential.response as AuthenticatorAttestationResponse
   return {
     id: credential.id,
     rawId: base64url.encode(credential.rawId),
     type: credential.type,
     authenticatorAttachment: credential.authenticatorAttachment,
-    clientExtensionResults: credential.getClientExtensionResults(),
+    clientExtensionResults: extensionResults(credential),
     response: {
       clientDataJSON: base64url.encode(response.clientDataJSON),
       attestationObject: base64url.encode(response.attestationObject),
@@ -57,17 +60,18 @@ export const getAssertion = async (config: Record<string, unknown>) => {
     timeout: 60000,
     ...config,
     challenge: base64url.decode(config.challenge as string),
-    ...(config.allowCredentials !== undefined ? { allowCredentials: descriptors(config.allowCredentials) } : {}),
+    ...(config.allowCredentials !== undefined ? { allowCredentials: decodeCredentialDescriptors(config.allowCredentials) } : {}),
   } as PublicKeyCredentialRequestOptions
   const credential = await navigator.credentials.get({ publicKey: options }) as PublicKeyCredential | null
   if (!credential) throw new Error('The authenticator did not return a response. Try again.')
+  if (typeof credential.toJSON === 'function') return credential.toJSON() as AuthenticationResponseJSON
   const response = credential.response as AuthenticatorAssertionResponse
   return {
     id: credential.id,
     rawId: base64url.encode(credential.rawId),
     type: credential.type,
     authenticatorAttachment: credential.authenticatorAttachment,
-    clientExtensionResults: credential.getClientExtensionResults(),
+    clientExtensionResults: extensionResults(credential),
     response: {
       clientDataJSON: base64url.encode(response.clientDataJSON),
       authenticatorData: base64url.encode(response.authenticatorData),

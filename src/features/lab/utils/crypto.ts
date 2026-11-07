@@ -12,8 +12,18 @@ export const base64url = {
     const binary = atob(s)
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    if (base64url.encode(bytes) !== str) throw new Error('Invalid base64url. Use the canonical value without padding.')
     return bytes.buffer as ArrayBuffer
   },
+}
+
+export const decodeCredentialDescriptors = (value: unknown): Array<PublicKeyCredentialDescriptor & { id: ArrayBuffer }> | undefined => {
+  if (value === undefined) return undefined
+  if (!Array.isArray(value)) throw new Error('allowCredentials/excludeCredentials must be an array.')
+  return value.map(item => {
+    if (!item || typeof item !== 'object' || item.type !== 'public-key') throw new Error('Each credential descriptor must have type "public-key" and a base64url id.')
+    return { ...item, id: base64url.decode(item.id) }
+  })
 }
 
 export const generateCredentialId = (): string => {
@@ -65,11 +75,21 @@ export const signData = async (
   data: ArrayBuffer | Uint8Array,
   algorithm: string
 ): Promise<ArrayBuffer> => {
-  const buf = data instanceof Uint8Array ? data.buffer as ArrayBuffer : data
+  const buf = data instanceof Uint8Array ? new Uint8Array(data).buffer : data
   if (algorithm === 'RS256') {
     return await crypto.subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, privateKey, buf)
   } else if (algorithm === 'ES256') {
-    return await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, buf)
+    const raw = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, buf))
+    // WebCrypto returns fixed-width r || s; WebAuthn assertions require DER integers.
+    const integer = (bytes: Uint8Array) => {
+      let start = 0
+      while (start < bytes.length - 1 && bytes[start] === 0) start++
+      const magnitude = bytes.slice(start)
+      const padding = magnitude[0] & 0x80 ? [0] : []
+      return [0x02, magnitude.length + padding.length, ...padding, ...magnitude]
+    }
+    const values = [...integer(raw.slice(0, 32)), ...integer(raw.slice(32))]
+    return new Uint8Array([0x30, values.length, ...values]).buffer
   }
   throw new Error(`Unsupported algorithm: ${algorithm}`)
 }

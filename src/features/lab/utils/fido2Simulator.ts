@@ -8,8 +8,10 @@ import {
   importKey,
   signData,
   jwkToCOSE,
+  decodeCredentialDescriptors,
 } from './crypto'
 import type { StoredCredential, GeneratedKey } from './localStorage'
+import { getCredentials } from './localStorage'
 
 const cborEncoder = new Encoder({
   tagUint8Array: false,
@@ -89,6 +91,13 @@ const createClientDataJSON = (
   return JSON.stringify({ type, challenge, origin, crossOrigin: false })
 }
 
+const encodeChallenge = (challenge: string | ArrayBuffer): string => {
+  if (typeof challenge !== 'string' && !(challenge instanceof ArrayBuffer)) throw new Error('challenge must be a base64url string.')
+  const encoded = typeof challenge === 'string' ? challenge : base64url.encode(challenge)
+  base64url.decode(encoded)
+  return encoded
+}
+
 interface CreateSimulatedCredentialOptions {
   challenge: string | ArrayBuffer
   algorithm?: string
@@ -98,6 +107,7 @@ interface CreateSimulatedCredentialOptions {
   userName?: string
   userDisplayName?: string
   existingKeyPair?: { publicKey: JsonWebKey; privateKey: JsonWebKey } | null
+  excludeCredentials?: PublicKeyCredentialDescriptorJSON[]
 }
 
 export const createSimulatedCredential = async ({
@@ -105,11 +115,19 @@ export const createSimulatedCredential = async ({
   algorithm = 'ES256',
   rpId = window.location.hostname,
   rpName = 'FIDO2 Test Client',
-  userId = 'test-user',
+  userId = 'dGVzdC11c2Vy',
   userName = 'testuser@example.com',
   userDisplayName = 'Test User',
   existingKeyPair = null,
+  excludeCredentials,
 }: CreateSimulatedCredentialOptions) => {
+  const challengeEncoded = encodeChallenge(challenge)
+  if (base64url.decode(userId).byteLength > 64) throw new Error('user.id must contain 1–64 bytes encoded as base64url.')
+  if (typeof rpId !== 'string' || !rpId) throw new Error('Enter a valid RP ID.')
+  const excluded = decodeCredentialDescriptors(excludeCredentials)
+  if (excluded?.some(descriptor => getCredentials().some(credential => credential.type === 'simulated' && credential.rpId === rpId && credential.credentialId === base64url.encode(descriptor.id)))) {
+    throw new DOMException('A credential in excludeCredentials already exists for this RP.', 'InvalidStateError')
+  }
   let keyPair: CryptoKeyPair
   if (existingKeyPair) {
     keyPair = {
@@ -131,7 +149,6 @@ export const createSimulatedCredential = async ({
   const coseKey = jwkToCOSE(publicKeyJWK, algorithm)
   const coseKeyBytes = new Uint8Array(cborEncoder.encode(coseKey))
 
-  const challengeEncoded = typeof challenge === 'string' ? challenge : base64url.encode(challenge)
   const clientDataJSON = createClientDataJSON('webauthn.create', challengeEncoded)
   const clientDataBuffer = new TextEncoder().encode(clientDataJSON)
 
@@ -153,6 +170,7 @@ export const createSimulatedCredential = async ({
     id: credentialId,
     rawId: credentialId,
     type: 'public-key',
+    clientExtensionResults: {},
     algorithm,
     response: {
       clientDataJSON: base64url.encode(clientDataBuffer),
@@ -175,6 +193,7 @@ interface CreateSimulatedAssertionOptions {
   credential: StoredCredential
   rpId?: string
   signCount?: number
+  allowCredentials?: PublicKeyCredentialDescriptorJSON[]
 }
 
 export const createSimulatedAssertion = async ({
@@ -182,14 +201,21 @@ export const createSimulatedAssertion = async ({
   credential,
   rpId = window.location.hostname,
   signCount = 1,
+  allowCredentials,
 }: CreateSimulatedAssertionOptions) => {
+  const challengeEncoded = encodeChallenge(challenge)
+  if (base64url.decode(credential.userId).byteLength > 64) throw new Error('Stored user.id must contain 1–64 bytes. Recreate this simulated credential.')
+  if (rpId !== credential.rpId) throw new Error('The requested RP ID does not match this simulated credential. Choose a credential for that RP or correct rpId.')
+  const allowed = decodeCredentialDescriptors(allowCredentials)
+  if (allowed?.length && !allowed.some(descriptor => base64url.encode(descriptor.id) === credential.credentialId)) {
+    throw new Error('This simulated credential is not in allowCredentials. Choose an allowed credential or correct the options.')
+  }
   const privateKey = await importKey(
     credential.privateKeyJWK as JsonWebKey,
     credential.algorithm,
     'private'
   )
 
-  const challengeEncoded = typeof challenge === 'string' ? challenge : base64url.encode(challenge)
   const clientDataJSON = createClientDataJSON('webauthn.get', challengeEncoded)
   const clientDataBuffer = new TextEncoder().encode(clientDataJSON)
   const clientDataHash = await crypto.subtle.digest('SHA-256', clientDataBuffer)
@@ -207,11 +233,12 @@ export const createSimulatedAssertion = async ({
     id: credential.id,
     rawId: credential.credentialId,
     type: 'public-key',
+    clientExtensionResults: {},
     response: {
       clientDataJSON: base64url.encode(clientDataBuffer),
       authenticatorData: base64url.encode(authenticatorData),
       signature: base64url.encode(signature),
-      userHandle: base64url.encode(new TextEncoder().encode(credential.userId)),
+      userHandle: credential.userId,
       clientData: JSON.parse(clientDataJSON),
     },
     algorithm: credential.algorithm,

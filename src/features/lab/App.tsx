@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import CreateCredentialForm from './components/CreateCredentialForm'
 import SigningPanel from './components/SigningPanel'
-import AssertionDisplay from './components/AssertionDisplay'
+import AssertionDisplay, { type AssertionData } from './components/AssertionDisplay'
 import KeyGeneratorButton from './components/KeyGeneratorButton'
 import CredentialManager from './components/CredentialManager'
 import { cn } from '../../lib/utils'
@@ -36,7 +36,7 @@ const TABS: TabDef[] = [
     label: 'Create credential',
     icon: KeyRound,
     title: 'Create credential',
-    description: 'Register a credential using the PublicKeyCredentialCreationOptions from the server.',
+    description: 'Create a registration response from the server options, then send it to the RP server for verification.',
     modeAware: true,
   },
   {
@@ -44,7 +44,7 @@ const TABS: TabDef[] = [
     label: 'Sign',
     icon: Signature,
     title: 'Sign',
-    description: 'Sign the server challenge and produce a WebAuthn assertion.',
+    description: 'Generate an assertion signing authenticatorData and SHA-256(clientDataJSON), which includes the server challenge.',
     modeAware: true,
   },
   {
@@ -57,19 +57,11 @@ const TABS: TabDef[] = [
   },
 ]
 
-interface AssertionData {
-  id: string
-  rawId: string
-  response: Record<string, string | null>
-  algorithm?: string
-  credentialId?: string
-}
-
 function ModeMenu({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
   return <label className="flex flex-col gap-1 text-sm">Authenticator mode
     <Select value={mode} onChange={event => onChange(event.target.value as Mode)} className={mode === 'simulated' ? 'text-[var(--warning)]' : 'text-[var(--success)]'}>
       <option value="simulated">Simulated · SubtleCrypto</option>
-      <option value="hardware">Hardware · WebAuthn</option>
+      <option value="hardware">WebAuthn · Browser authenticator</option>
     </Select>
   </label>
 }
@@ -180,7 +172,7 @@ export default function App() {
           <CardContent>
             {current.modeAware && <div className="mb-5"><Alert variant={mode === 'simulated' ? 'warning' : 'info'}>{mode === 'simulated'
               ? 'For development and testing only. Simulated mode uses SubtleCrypto and stores unencrypted private keys in localStorage. Do not use production credentials.'
-              : <>Hardware: navigator.credentials calls a real authenticator. The private key stays in the authenticator; the RP ID must match this page's origin.{window.location.hostname === '127.0.0.1' && <> For local development, <a className="underline" href={window.location.href.replace('127.0.0.1', 'localhost')}>open on localhost</a> and restore the sample to use an RP ID accepted by the browser.</>}</>}</Alert></div>}
+              : <>WebAuthn uses a browser-selected authenticator or passkey provider, which may use hardware, software or synced passkeys. The private key is not exposed to this page. The RP ID must be this host or a valid parent domain, and the RP server must accept this page's origin.{window.location.hostname === '127.0.0.1' && <> For local development, <a className="underline" href={window.location.href.replace('127.0.0.1', 'localhost')}>open on localhost</a> and restore the sample to use an RP ID accepted by the browser.</>}</>}</Alert></div>}
             <section hidden={activeTab !== 'create'} aria-label="Create credential">
               <CreateCredentialForm mode={mode} onCredentialCreated={handleCredentialCreated} />
             </section>
@@ -203,7 +195,7 @@ export default function App() {
                     <SectionHeading
                       icon={KeyRound}
                       title="Key generator"
-                      description="Generate optional ES256 or RS256 key pairs for simulated credentials."
+                      description="Generate optional ES256 or RS256 fixtures for simulation. WebAuthn authenticators generate credential keys during registration."
                     />
                     <KeyGeneratorButton refreshKey={refreshKey} onKeyGenerated={handleCredentialCreated} />
                   </section>
@@ -217,7 +209,7 @@ export default function App() {
                   <SectionHeading
                     icon={Database}
                     title="Stored credentials"
-                    description="Registered credentials, their metadata and public keys."
+                    description="Local test records and simulated credentials. WebAuthn registration still requires RP server verification."
                   />
                   <CredentialManager refreshKey={refreshKey} />
                   <StorageTools onChange={handleCredentialCreated} />

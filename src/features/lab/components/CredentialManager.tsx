@@ -50,7 +50,7 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
               {credential.id}
             </span>
             <Badge variant="secondary" className="font-mono">{credential.algorithm}</Badge>
-            <Badge variant={isSimulated ? 'warning' : 'brand'}>{isSimulated ? 'Simulated' : 'Hardware'}</Badge>
+            <Badge variant={isSimulated ? 'warning' : 'brand'}>{isSimulated ? 'Simulated' : 'WebAuthn'}</Badge>
           </div>
 
           <dl className="mt-2.5 grid grid-cols-1 gap-x-6 gap-y-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
@@ -78,7 +78,7 @@ function CredentialRow({ credential, onDelete }: { credential: StoredCredential;
             variant="ghost"
             size="icon-sm"
             onClick={onDelete}
-            title="Delete credential"
+            title={isSimulated ? 'Delete simulated credential' : 'Remove local record'}
             className="text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/10 hover:text-[var(--destructive)]"
           >
             <Trash2 size={14} />
@@ -119,13 +119,16 @@ export default function CredentialManager({ refreshKey }: Props) {
   }, [refreshKey])
 
   const handleDelete = (id: string) => {
-    if (!confirm('Delete this credential?')) return
+    const credential = credentials.find(item => item.id === id)
+    if (!confirm(credential?.type === 'hardware'
+      ? 'Remove this local record? The credential remains in the authenticator or passkey provider and at the RP server.'
+      : 'Delete this simulated credential record? Any separately generated test key remains.')) return
     if (!deleteCredential(id)) { setError('Could not delete the credential.'); return }
     setCredentials(getCredentials())
   }
 
   const handleClearAll = () => {
-    if (!confirm('Delete ALL credentials?')) return
+    if (!confirm('Remove all local credential records? Generated test keys, credentials in authenticators or passkey providers, and RP server registrations remain unchanged.')) return
     if (!clearAllCredentials()) { setError('Could not delete credentials.'); return }
     setCredentials([])
   }
@@ -134,7 +137,7 @@ export default function CredentialManager({ refreshKey }: Props) {
     return (
       <EmptyState
         icon={<Database size={18} />}
-        title="No stored credentials"
+        title="No local credential records"
         description="Create a credential in the Create credential tab to view its metadata and public key."
       />
     )
@@ -146,11 +149,11 @@ export default function CredentialManager({ refreshKey }: Props) {
       <div className="flex items-center justify-between">
         <span className="text-xs text-[var(--muted-foreground)]">
           <span className="font-semibold text-[var(--foreground)]">{credentials.length}</span>
-          {' '}{credentials.length === 1 ? 'stored credential' : 'stored credentials'}
+          {' '}{credentials.length === 1 ? 'local credential record' : 'local credential records'}
         </span>
         <Button variant="destructive" size="sm" onClick={handleClearAll}>
           <Trash2 size={13} />
-          Delete all
+          Remove all local records
         </Button>
       </div>
       {credentials.map(c => (

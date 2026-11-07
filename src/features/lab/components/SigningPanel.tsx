@@ -11,19 +11,12 @@ import { Field } from './ui/field'
 import { Select } from './ui/select'
 import { InlineCode } from './ui/inline-code'
 import { CodeEditor } from './ui/code-editor'
+import type { AssertionData } from './AssertionDisplay'
 
 const DEFAULT_JSON = {
   challenge: 'VN00RzBXws786lXX2NrBhxpV3002sfeLhvSHyY_m4RBp7yhX34hPHnCVy_55saIxkqGRlJGvpCNChduIrZSn7DiSnqq___E4EuJvw3QUFC9SrGKgvSVsQ6CptqTddl8jfQCBJoYRftQibRcBNWfDmQswtKb3Ee6y_fprIyD02nw',
   userVerification: 'preferred',
   timeout: 60000,
-}
-
-interface AssertionData {
-  id: string
-  rawId: string
-  response: Record<string, string | null>
-  algorithm?: string
-  credentialId?: string
 }
 
 interface Props {
@@ -101,7 +94,7 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
         if (!current) throw new Error('The credential was deleted. Choose another.')
         const count = (current.signCount ?? 0) + 1
         if (count > 0xffffffff) throw new Error('Counter exhausted. Create another test credential.')
-        assertion = await createSimulatedAssertion({ challenge, credential: current, rpId: current.rpId, signCount: count }) as AssertionData
+        assertion = await createSimulatedAssertion({ challenge, credential: current, rpId: config.rpId as string | undefined, signCount: count, allowCredentials: config.allowCredentials as PublicKeyCredentialDescriptorJSON[] | undefined }) as AssertionData
         if (!updateSignCount(current.id, count)) throw new Error('Could not save the counter. No response was published.')
       }
 
@@ -126,9 +119,10 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
         label="Authentication options (JSON)"
         hint={
           <>
-            <InlineCode>PublicKeyCredentialRequestOptions</InlineCode> object.
-            The field <InlineCode>challenge</InlineCode> is required. When{' '}
+            JSON representation of <InlineCode>PublicKeyCredentialRequestOptions</InlineCode>.
+            Encode the required <InlineCode>challenge</InlineCode> and credential IDs as base64url without padding. When{' '}
             <InlineCode>allowCredentials</InlineCode> matches a stored credential, it is selected automatically. You can change the selection.
+            {mode === 'simulated' && ' Simulation enforces rpId and allowCredentials, with synthetic UP/UV flags. User verification policy and extensions are not simulated.'}
           </>
         }
       >
@@ -145,11 +139,11 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
       <Field
         label="Credential"
         htmlFor="signing-credential"
-        required
+        required={mode === 'simulated'}
         hint={
-          noCredentials
-            ? `No credentials in this mode. Create one in the Create credential tab.`
-            : undefined
+          mode === 'hardware'
+            ? 'Optional local shortcut. The browser can use discoverable credentials even when no local record exists.'
+            : noCredentials ? 'No simulated credentials. Create one in the Create credential tab.' : undefined
         }
       >
           <Select id="signing-credential"
@@ -162,7 +156,7 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
             disabled={noCredentials}
           >
             <option value="">
-              {noCredentials ? `No credentials in this mode` : 'Select a credential…'}
+              {mode === 'hardware' ? 'Let the browser choose a credential' : noCredentials ? 'No simulated credentials' : 'Select a credential…'}
             </option>
             {credentials.map(c => (
               <option key={c.id} value={c.id}>
@@ -181,7 +175,7 @@ export default function SigningPanel({ mode, refreshKey, onAssertionGenerated }:
           disabled={loading || (mode === 'simulated' && !selectedCredentialId)}
         >
           {loading ? <LoaderCircle size={15} className="animate-spin" /> : <Signature size={15} />}
-          {loading ? 'Signing…' : 'Sign challenge'}
+          {loading ? 'Generating…' : 'Generate assertion'}
         </Button>
         {mode === 'hardware' && (
           <span className="text-xs text-[var(--muted-foreground)]">

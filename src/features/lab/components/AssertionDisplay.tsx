@@ -12,12 +12,14 @@ interface AssertionResponse {
   [key: string]: string | null | undefined
 }
 
-interface AssertionData {
+export interface AssertionData {
   id: string
   rawId: string
   response: AssertionResponse
   algorithm?: string
   credentialId?: string
+  authenticatorAttachment?: string | null
+  clientExtensionResults?: AuthenticationExtensionsClientOutputsJSON
 }
 
 interface AssertionDisplayProps {
@@ -29,6 +31,8 @@ export default function AssertionDisplay({ assertion }: AssertionDisplayProps) {
     type: 'public-key',
     id: assertion.id,
     rawId: assertion.rawId,
+    ...(assertion.authenticatorAttachment !== undefined ? { authenticatorAttachment: assertion.authenticatorAttachment } : {}),
+    clientExtensionResults: assertion.clientExtensionResults ?? {},
     response: Object.fromEntries(
       Object.entries({
         authenticatorData: assertion.response?.authenticatorData,

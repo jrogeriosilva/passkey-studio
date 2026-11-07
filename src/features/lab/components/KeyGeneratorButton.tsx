@@ -103,6 +103,8 @@ export default function KeyGeneratorButton({ onKeyGenerated, refreshKey }: Props
         </div>
       </div>
 
+      <p className="text-sm text-[var(--muted-foreground)]">These exportable keys are simulation fixtures. WebAuthn registration generates a new credential key pair through the authenticator.</p>
+
       {keys.length > 0 && <Button variant="ghost" onClick={() => { if (confirm('Delete all simulated keys?')) { if (clearAllGeneratedKeys()) { refresh(); onKeyGenerated?.() } else setError('Could not delete keys.') } }}>Delete all keys</Button>}
       {/* Key list */}
       {showKeys && (
