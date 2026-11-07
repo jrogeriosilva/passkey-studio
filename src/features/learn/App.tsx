@@ -12,7 +12,7 @@ import { PayloadGuide } from './components/PayloadGuide';
 import { AuthenticatorIcon } from './components/AuthenticatorIcon';
 
 const authenticators = [
-    ['usb', 'tabUsb', 'tabUsbSub'], ['nfc', 'tabNfc', 'tabNfcSub'],
+    ['usb', 'tabUsb', 'tabUsbSub'],
     ['hello', 'tabHello', 'tabHelloSub'], ['phone', 'tabPhone', 'tabPhoneSub'],
 ] as const;
 

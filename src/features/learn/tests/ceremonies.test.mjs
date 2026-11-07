@@ -5,7 +5,7 @@ import { test } from 'node:test'
 import { CONTENT } from '../data/content.ts'
 import { createCeremonies } from '../data/ceremonies.ts'
 
-for (const [ceremony, count] of Object.entries({ usb: 8, nfc: 8, hello: 9, phone: 11 })) {
+for (const [ceremony, count] of Object.entries({ usb: 8, hello: 9, phone: 11 })) {
   for (const mode of ['login', 'register']) {
     test(`${ceremony} ${mode} retains its complete ceremony`, () => {
       const definition = createCeremonies(CONTENT)[ceremony]

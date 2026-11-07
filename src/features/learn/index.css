@@ -216,7 +216,7 @@ h1 {
 @media (min-width: 901px) {
   .tabs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .selector {
     align-items: center;
@@ -1041,24 +1041,113 @@ ol.list li:not(.active) .d-wrap { visibility:hidden; }
 
 @scope (.learn-feature) {
   .scene-box .isometric-scene { max-height: 430px; }
-  .isometric-scene .iso-device { stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; }
-  .isometric-scene .iso-active { stroke: var(--flow); stroke-width: 2; }
-  .isometric-scene .iso-top { fill: var(--panel-2); }
-  .isometric-scene .iso-front { fill: var(--panel); }
-  .isometric-scene .iso-side { fill: var(--bg); }
-  .isometric-scene .iso-metal { fill: var(--muted); stroke: var(--ink); }
-  .isometric-scene .iso-sensor { fill: var(--accent-soft); stroke: var(--accent); }
+  .isometric-scene .iso-device {
+    stroke: #607396;
+    stroke-width: 1.35;
+    stroke-linejoin: round;
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease;
+  }
+  .isometric-scene .iso-active {
+    stroke: var(--flow);
+    stroke-width: 1.75;
+  }
+  /* Per-face shading from one fixed top-left-front light: top lightest, left mid, right darkest */
+  .isometric-scene .iso-top { fill: #263b61; }
+  .isometric-scene .iso-front { fill: #182640; }
+  .isometric-scene .iso-side { fill: #0e1627; }
+  .isometric-scene .iso-active .iso-top { fill: #2e4876; }
+  .isometric-scene .iso-active .iso-front { fill: #1e3152; }
+  .isometric-scene .iso-active .iso-side { fill: #132038; }
+
+  .isometric-scene .iso-plinth-top { fill: #17233b; stroke: #314363; stroke-width: 1; }
+  .isometric-scene .iso-plinth-left { fill: #111b2e; stroke: #283854; stroke-width: 1; }
+  .isometric-scene .iso-plinth-right { fill: #0b1220; stroke: #202d45; stroke-width: 1; }
+  .isometric-scene .iso-plinth-active .iso-plinth-top { fill: #1d3052; stroke: var(--flow); }
+  .isometric-scene .iso-shadow { fill: rgba(4, 8, 18, 0.58); stroke: none; }
+
+  .isometric-scene .iso-metal-top { fill: #9aa8c0; stroke: #d6e0f0; stroke-width: 1.1; }
+  .isometric-scene .iso-metal-left { fill: #6e7d96; stroke: #aebcd2; stroke-width: 1.1; }
+  .isometric-scene .iso-metal-right { fill: #4a576d; stroke: #8c9bb3; stroke-width: 1.1; }
+  .isometric-scene .iso-screen-bezel { fill: #1b2b47; }
+  .isometric-scene .iso-key-grid { stroke: #33476b; stroke-width: 0.9; opacity: 0.75; }
+  .isometric-scene .iso-chrome-line { stroke: #384e75; stroke-width: 1; }
+  .isometric-scene .iso-lock-glyph { stroke: var(--flow); stroke-width: 1.5; }
+  .isometric-scene .iso-chip-pins { stroke: #9fb0ca; stroke-width: 1.4; stroke-linecap: round; }
+
+  .isometric-scene .iso-sensor { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .isometric-scene .iso-sensor-core { stroke: var(--accent); stroke-width: 1; opacity: 0.7; }
+  .isometric-scene .iso-sensor-blink { animation: iso-sensor-pulse 1.1s ease-in-out infinite alternate; }
   .isometric-scene .iso-indicator { fill: var(--flow); stroke: none; }
-  .isometric-scene .iso-detail { fill: var(--flow-soft); }
-  .isometric-scene text { fill: var(--ink); stroke: none; text-anchor: middle; font-size: 15px; font-family: var(--font-body); }
-  .isometric-scene .iso-sub, .isometric-scene .iso-protocol { fill: var(--muted); font-size: 12px; }
-  .isometric-scene .iso-message { fill: var(--flow); font-family: var(--font-mono); font-size: 14px; }
-  .isometric-scene .iso-transfer { fill: none; stroke: var(--flow); stroke-width: 2; }
-  .isometric-scene .iso-packet { fill: var(--flow); offset-distance: 50%; }
-  .is-playing .iso-packet { animation: usb-packet 2s linear infinite; }
+  .isometric-scene .iso-indicator-subtle { fill: #4d6285; stroke: none; }
+  .isometric-scene .iso-indicator-ok { fill: var(--ok); stroke: none; }
+  .isometric-scene .iso-detail { fill: #1d3154; stroke: #46618f; stroke-width: 1.1; }
   .isometric-scene .iso-touch { fill: var(--accent); stroke: var(--accent); }
-  @keyframes usb-packet { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-  @media (prefers-reduced-motion: reduce) { .is-playing .iso-packet { animation: none; } }
+  .isometric-scene .iso-touch-surface { fill: #4f3d17; stroke: var(--accent); }
+  .isometric-scene .iso-verified-fill { fill: var(--ok-soft); stroke: var(--ok); }
+  .isometric-scene .iso-verified-surface { fill: #194230; stroke: var(--ok); }
+  .isometric-scene .iso-verified-badge { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.6; }
+
+  .isometric-scene .iso-conduit { stroke: #3b4d6e; stroke-width: 1.8; stroke-dasharray: 5 6; fill: none; }
+  .isometric-scene .iso-transfer { fill: none; stroke: var(--flow); stroke-width: 2.2; }
+  .isometric-scene .iso-packet { offset-distance: 55%; animation: iso-packet-travel 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+  .isometric-scene .iso-packet-dot { fill: #d8e7ff; stroke: var(--flow); stroke-width: 1.5; }
+  .isometric-scene .iso-packet-halo { fill: var(--flow); opacity: 0.28; stroke: none; }
+  .isometric-scene .iso-scan-cone { fill: rgba(132, 176, 255, 0.14); stroke: none; }
+  .isometric-scene:not(.iso-pinned) .iso-camera-rig { animation: iso-camera-drift 9s sine-in-out infinite alternate; }
+  @keyframes iso-packet-travel {
+    0% { offset-distance: 6%; opacity: 0.35; }
+    20% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { offset-distance: 94%; opacity: 0.25; }
+  }
+  @keyframes iso-camera-drift {
+    from { transform: translate(-1.8px, -1px); }
+    to { transform: translate(1.8px, 1px); }
+  }
+
+  .isometric-scene .iso-usb-unit,
+  .isometric-scene .iso-tpm-stack {
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .isometric-scene .iso-ring-touch { stroke: var(--accent); stroke-width: 1.6; animation: iso-wave-lift 1.2s ease-out infinite; }
+  .isometric-scene .iso-ring-touch-outer { stroke: var(--accent); stroke-width: 1.1; opacity: 0.55; animation: iso-wave-lift 1.2s ease-out 0.2s infinite; }
+  .isometric-scene .iso-ring-blink { stroke: var(--accent); stroke-width: 1.4; opacity: 0.85; animation: iso-wave-lift 1.4s ease-in-out infinite; }
+  .isometric-scene .iso-ring-blink-outer { stroke: var(--accent); stroke-width: 1; opacity: 0.4; animation: iso-wave-lift 1.4s ease-in-out 0.25s infinite; }
+  .isometric-scene .iso-scan-beam { stroke: var(--flow); stroke-width: 2; animation: iso-scan-sweep 1.4s ease-in-out infinite alternate; }
+  .isometric-scene .iso-scan-beam-phone { stroke: var(--flow); stroke-width: 1.8; animation: iso-scan-phone 1.2s ease-in-out infinite alternate; }
+
+  .isometric-scene text { fill: var(--ink); stroke: none; text-anchor: middle; font-size: 14.5px; font-weight: 500; font-family: var(--font-body); }
+  .isometric-scene .iso-sub, .isometric-scene .iso-protocol { fill: var(--muted); font-size: 12px; font-weight: 400; }
+  .isometric-scene .iso-message { fill: var(--flow); font-family: var(--font-mono); font-size: 13.5px; font-weight: 500; }
+
+  @keyframes iso-sensor-pulse {
+    from { fill: var(--accent-soft); }
+    to { fill: var(--accent); }
+  }
+  @keyframes iso-wave-lift {
+    from { transform: translateY(2px); opacity: 0.85; }
+    to { transform: translateY(-6px); opacity: 0.15; }
+  }
+  @keyframes iso-scan-sweep {
+    from { transform: translateY(0); }
+    to { transform: translateY(34px); }
+  }
+  @keyframes iso-scan-phone {
+    from { transform: translateY(-10px); }
+    to { transform: translateY(10px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .isometric-scene .iso-sensor-blink,
+    .isometric-scene .iso-ring-touch,
+    .isometric-scene .iso-ring-touch-outer,
+    .isometric-scene .iso-ring-blink,
+    .isometric-scene .iso-ring-blink-outer,
+    .isometric-scene .iso-scan-beam,
+    .isometric-scene .iso-scan-beam-phone {
+      animation: none !important;
+    }
+  }
   @media (max-width: 540px) {
     .scene-stage:has(.isometric-scene) { overflow-x: auto; }
     .scene-box .isometric-scene { min-width: 560px; }

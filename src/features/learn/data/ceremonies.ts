@@ -107,32 +107,6 @@ export function createCeremonies(T: Translations) {
                 ];
             }
         },
-        nfc: {
-            steps(mode) {
-                const S = T.nfcSteps, W = T.words, L = mode === 'login';
-                const getResp = code `${k('SW')}: ${acc('91 00')} (${S.processing}) → ${v('NFCCTAP_GETRESPONSE')}`;
-                return [
-                    stepRequest(mode), stepChallenge(mode),
-                    { ...stepClientData(mode, S.dlgTap), st: 'poll' },
-                    { who: 'auth', tag: 'user', t: S.s4t,
-                        d: S.s4d,
-                        pkt: { from: 'client', to: 'auth', label: 'SELECT AID' }, st: 'tap', message: S.dlgDetected, dur: 3200,
-                        data: code `${k('NFC')}: ${v('ISO/IEC 14443-A · 13,56 MHz')}\n${k(S.fieldK)}: ${ok(S.fieldV)}\n${k('SELECT AID')}: ${v('00 A4 04 00 08 A0 00 00 06 47 2F 00 01')}\n${k(S.replyK)}: ${acc('"FIDO_2_0"')} ${ok('90 00')}` },
-                    { who: 'auth', tag: 'client', t: S.s5t,
-                        d: S.s5d(mode),
-                        pkt: { from: 'client', to: 'auth', label: L ? 'getAssertion' : 'makeCredential' }, st: 'cmd', message: S.dlgDetected, dur: 3200,
-                        data: code `${k('APDU NFCCTAP_MSG')}: ${v('80 10 00 00')} Lc …\n${k('CTAP2')} ${v(L ? 'authenticatorGetAssertion (0x02)' : 'authenticatorMakeCredential (0x01)')}\n${k('rpId')}: ${v('"' + T.domain + '"')}\n${k('clientDataHash')}: SHA-256(clientDataJSON)\n${L ? code `${k('allowList')}: [ ${v(HEX.credId)} ]` : code `${k('user')}: { id, name: "ana" }`}\n${k(S.presenceK)}: ${ok(S.presenceV)}` },
-                    { who: 'auth', tag: 'auth', t: L ? S.s6tLogin : S.s6tReg,
-                        d: L ? S.s6dLogin : S.s6dReg,
-                        pkt: null, st: 'sign', message: S.dlgVerifying, dur: 3600,
-                        data: L
-                            ? code `${getResp}\n${k('authenticatorData')}:\n  rpIdHash ${v(rpHash())}\n  flags    ${v('0x01')} (UP=1, UV=0)\n  counter  ${v('42')}\n${k('signature')}: ${acc(HEX.sig)}\n${k('SW')}: ${ok('90 00')}`
-                            : code `${getResp}\n${k(W.newPair)}: ES256 (P-256)\n${k('credentialId')}: ${v(HEX.credId)}\n${k('publicKey')} (COSE):\n${acc(HEX.pub)}\n${k('privateKey')}: ${ok(W.staysChip)}\n${k('SW')}: ${ok('90 00')}` },
-                    stepSend(mode, 'signed', W.sending),
-                    stepVerify(mode, 0, 'done')
-                ];
-            }
-        },
         hello: {
             steps(mode) {
                 const S = T.helloSteps, W = T.words, L = mode === 'login';

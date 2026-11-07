@@ -67,3 +67,15 @@ test('keeps sequence events synchronized with playback, pause, replay and view c
   act(() => { vi.advanceTimersToNextTimer(); });
   expect(diagram().getAllByRole('button')).toHaveLength(2);
 });
+
+test('freezes the isometric scene timeline deterministically when ?t=N is provided', () => {
+  window.history.replaceState({}, '', '/fido2-demo/?ceremony=hello&mode=register&step=6&t=1.2');
+  render(<Learn />);
+  expect(window.__ready).toBe(true);
+  expect(window.__isoDuration).toBeGreaterThan(0);
+  const scenes = screen.getAllByRole('img', { name: /Server \(Relying Party\), Browser \(client\), Windows Hello/i });
+  expect(scenes[0].querySelectorAll('.iso-top').length).toBeGreaterThan(0);
+  expect(scenes[0].querySelectorAll('.iso-front').length).toBeGreaterThan(0);
+  expect(scenes[0].querySelectorAll('.iso-side').length).toBeGreaterThan(0);
+  window.history.replaceState({}, '', '/');
+});

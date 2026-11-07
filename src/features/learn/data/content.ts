@@ -4,10 +4,9 @@ import type { Mode } from './types.ts';
 export const CONTENT = {
     htmlLang: 'en',
     h1: 'FIDO2 ceremonies, step by step',
-    lede: ['Compare ', createElement('strong', { key: 0 }, 'four authenticators'), ' in registration and authentication. Choose a ceremony and play its steps.'],
+    lede: ['Compare ', createElement('strong', { key: 0 }, 'three authenticators'), ' in registration and authentication. Choose a ceremony and play its steps.'],
     ariaAuth: 'Authenticator', ariaMode: 'Ceremony type', ariaStage: 'Animation stage',
     tabUsb: 'USB key', tabUsbSub: 'Physical touch · CTAP2 over USB',
-    tabNfc: 'NFC key', tabNfcSub: 'Tap on a reader · CTAP2 over NFC',
     tabHello: 'Windows Hello', tabHelloSub: 'Face or PIN · key in the TPM',
     tabPhone: 'Smartphone', tabPhoneSub: 'QR + Bluetooth · passkey',
     modeLogin: 'Authentication', modeRegister: 'Registration',
@@ -36,7 +35,6 @@ export const CONTENT = {
     phTouch: 'Touch the sensor', phSigned: 'Signed',
     /* ceremonies */
     usb: { name: 'a USB key', auth: 'USB key', note: 'CTAP2 over USB HID · user presence by touch' },
-    nfc: { name: 'an NFC key', auth: 'NFC key', note: 'CTAP2 over NFC · ISO 7816-4 APDUs · user presence by tapping' },
     hello: { name: 'Windows Hello', auth: 'Windows Hello · TPM', note: 'Platform authenticator · local biometric verification' },
     phone: { name: 'a smartphone', auth: 'Smartphone', note: 'Hybrid transport · QR + Bluetooth LE + encrypted tunnel' },
     /* shared steps */
@@ -77,19 +75,6 @@ export const CONTENT = {
         s6tLogin: 'Touch the key: it signs the challenge', s6tReg: 'Touch the key: it creates a new key pair',
         s6dLogin: 'The finger touches the sensor. The key looks up the private key tied to the rpId and credentialId and signs authenticatorData ‖ SHA-256(clientDataJSON) with it.',
         s6dReg: 'The finger touches the sensor. The key generates an ES256 pair exclusive to bank.example: the private key stays in the secure chip, the public key leaves inside an attestationObject with a new credentialId.'
-    },
-    nfcSteps: {
-        dlgTap: 'Tap your security key on the reader', dlgDetected: 'Key detected. Keep it over the reader', dlgVerifying: 'Verifying…',
-        s4t: 'Key tapped on the NFC reader',
-        s4d: 'Ana taps the key on the reader. A few centimetres away, the reader’s 13.56 MHz field powers the key, which has no battery. The browser selects the FIDO applet with a SELECT command and the key answers “FIDO_2_0”.',
-        fieldK: 'field', fieldV: 'key powered by the reader', replyK: 'reply',
-        s5t: 'CTAP2 command wrapped in an APDU',
-        s5d: (m: Mode) => 'Over NFC, CTAP2 travels inside ISO 7816-4 APDUs (NFCCTAP_MSG). The browser sends ' + (m === 'login' ? 'authenticatorGetAssertion' : 'authenticatorMakeCredential') + '. There is no button to press: bringing the key to the reader is the presence gesture itself (UP=1).',
-        presenceK: 'presence', presenceV: 'the tap itself (no button)',
-        s6tLogin: 'Still in the field, the key signs the challenge', s6tReg: 'Still in the field, the key creates a new key pair',
-        s6dLogin: 'Powered only by the field, the key looks up the private key tied to the rpId and credentialId and signs authenticatorData ‖ SHA-256(clientDataJSON). If it needs more time it answers 0x9100 and the browser keeps asking with NFCCTAP_GETRESPONSE until 0x9000 comes back.',
-        s6dReg: 'Powered only by the field, the key generates an ES256 pair exclusive to bank.example: the private key stays in the secure chip, the public key leaves inside an attestationObject with a new credentialId. Meanwhile the key has to stay over the reader.',
-        processing: 'processing'
     },
     helloSteps: {
         s4t: 'Windows takes over the operation',
