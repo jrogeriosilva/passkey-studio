@@ -24,7 +24,7 @@ export function CredentialDiagram() {
       <Node title="signature" tone="green">Cryptographic signature<small>authenticatorData ‖ clientDataHash</small><em>Authentication</em></Node>
       <Node title="userHandle" tone="green">User identifier<small>May be null</small><em>Authentication</em></Node>
     </div>
-    <p className="payload-note">During registration, authenticator data is embedded in attestationObject as authData.</p>
+    <p className="payload-note">During registration, authenticator data is embedded in attestationObject as authData. The browser creates clientDataJSON and sends only its SHA-256 hash to a CTAP2 authenticator.</p>
   </Plate>;
 }
 
@@ -49,7 +49,7 @@ export function AttestationDiagram() {
     <h5 className="payload-subheading">Explore an attestation format</h5>
     <div className="payload-format-tabs" role="group" aria-label="Attestation format">{formats.map(([name], i) => <button key={name} type="button" aria-pressed={i === selected} onClick={() => setSelected(i)}>{name}</button>)}</div>
     <div className="payload-format-detail" aria-live="polite"><div><strong>{formats[selected][0]}</strong><p>{formats[selected][1]}</p></div><code>{formats[selected][2]}</code></div>
-    <p className="payload-note">Illustrative field names. Attestation verification depends on the format and relying party policy; fmt: none carries no attestation statement.</p>
+    <p className="payload-note">Illustrative field names. The attestation preference defaults to none; direct is a request, not a guarantee. Verify the returned format under relying party policy. fmt: none has an empty attStmt and no attestation signature.</p>
   </Plate>;
 }
 
@@ -67,7 +67,7 @@ export function ByteDiagram() {
     <div className="payload-flags">{flags.map(([bit, flag, label]) => <div key={bit} className={flag === '—' ? 'reserved' : ''}><small>bit {bit}</small><strong>{flag}</strong><span>{label}</span></div>)}</div>
     <h5 className="payload-subheading">Attested credential data <span>Present only when AT = 1</span></h5>
     <div className="payload-attested">
-      <Node title="AAGUID">16 bytes<small>Authenticator model identifier</small></Node>
+      <Node title="AAGUID">16 bytes<small>Model identifier; may be all zeros</small></Node>
       <Node title="credentialIdLength">2 bytes · uint16 BE<small>Length of the following ID</small></Node>
       <Node title="credentialId">Variable length<small>Credential identifier</small></Node>
       <Node title="credentialPublicKey" tone="blue">CBOR COSE_Key<small>Public key for verification</small></Node>
