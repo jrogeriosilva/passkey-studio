@@ -31,7 +31,13 @@ export function SequenceDiagram({ steps, index, onSelect, playing, name }: {
           </button>
         </li>;
       })}
-    </ol></div></div>
+    </ol>
+    {index < steps.length - 1 && (
+      <p className="sequence-progress-hint" aria-hidden="true">
+        Showing {index + 1} of {steps.length} exchanges · Use Next or Play to trace the remaining {steps.length - index - 1} {steps.length - index - 1 === 1 ? 'step' : 'steps'}
+      </p>
+    )}
+    </div></div>
     </div>
   </section>;
 }

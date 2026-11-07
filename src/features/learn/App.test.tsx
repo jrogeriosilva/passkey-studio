@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import Learn from './App';
 import Inspector from '../inspector/App';
 
-afterEach(() => { cleanup(); localStorage.clear(); vi.useRealTimers(); });
+afterEach(() => { cleanup(); localStorage.clear(); vi.useRealTimers(); window.history.replaceState({}, '', '/'); });
 
 test('always renders English and places the payload guide in Learn', () => {
   localStorage.setItem('fido2demo.lang', 'pt');
@@ -78,4 +78,20 @@ test('freezes the isometric scene timeline deterministically when ?t=N is provid
   expect(scenes[0].querySelectorAll('.iso-front').length).toBeGreaterThan(0);
   expect(scenes[0].querySelectorAll('.iso-side').length).toBeGreaterThan(0);
   window.history.replaceState({}, '', '/');
+});
+
+test('syncs ceremony, mode and step query parameters as the user navigates', () => {
+  window.history.replaceState({}, '', '/fido2-demo/');
+  render(<Learn />);
+  expect(window.location.search).toBe('');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  expect(window.location.search).toBe('?ceremony=usb&mode=register&step=2');
+
+  fireEvent.click(screen.getByRole('radio', { name: /Authentication/i }));
+  expect(window.location.search).toBe('?ceremony=usb&mode=login&step=2');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Restart' }));
+  fireEvent.click(screen.getByRole('radio', { name: /Registration/i }));
+  expect(window.location.search).toBe('');
 });

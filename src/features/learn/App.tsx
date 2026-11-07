@@ -83,6 +83,27 @@ export default function App() {
     }, [playing, index, stepDuration, steps.length]);
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const isDefault = ceremony === 'usb' && mode === 'register' && safeIndex === 0;
+        if (isDefault && !params.has('ceremony') && !params.has('mode') && !params.has('step')) return;
+        if (isDefault && !params.has('t')) {
+            params.delete('ceremony');
+            params.delete('mode');
+            params.delete('step');
+        } else {
+            params.set('ceremony', ceremony);
+            params.set('mode', mode);
+            params.set('step', String(safeIndex + 1));
+        }
+        const query = params.toString();
+        const nextSearch = query ? `?${query}` : '';
+        if (window.location.search !== nextSearch) {
+            lastQuery.current = nextSearch;
+            window.history.replaceState(window.history.state, '', `${window.location.pathname}${nextSearch}${window.location.hash}`);
+        }
+    }, [ceremony, mode, safeIndex]);
+
+    useEffect(() => {
         const onKey = (event: KeyboardEvent) => {
             if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
                 return;
@@ -143,13 +164,19 @@ export default function App() {
           </div>
           <span className="counter" role="status">{index + 1} / {steps.length}</span>
         </div>
-        <p className="shortcuts">← → · Space: play/pause {view === 'world' && <button className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button>}</p>
         <div className="view-toolbar">
           <div className="view-switch" role="radiogroup" aria-label="Visualization" onKeyDown={onChoiceKey}>
             <button type="button" role="radio" aria-checked={view === 'world'} tabIndex={view === 'world' ? 0 : -1} onClick={() => setView('world')}><Monitor size={16} aria-hidden="true" />Real World</button>
             <button type="button" role="radio" aria-checked={view === 'sequence'} tabIndex={view === 'sequence' ? 0 : -1} onClick={() => setView('sequence')}><ListTree size={16} aria-hidden="true" />Sequence</button>
           </div>
-          <span>{view === 'world' ? 'Follow the ceremony' : 'Select a message to explore'}</span>
+          <p className="shortcuts">
+            {view === 'sequence' ? (
+              <span className="shortcuts-hint">{safeIndex === 0 ? 'Play or step forward to trace the exchange' : 'Select a revealed message to revisit'}</span>
+            ) : (
+              <span className="shortcuts-hint kbd-only">← → · Space: play/pause</span>
+            )}
+            {view === 'world' && <button type="button" className="scene-zoom" onClick={() => dialogRef.current?.showModal()}>Enlarge scene</button>}
+          </p>
         </div>
         {view === 'sequence' ? <SequenceDiagram steps={steps} index={safeIndex} onSelect={go} playing={playing} name={M.auth} /> : <>
         <div className="scene-box">

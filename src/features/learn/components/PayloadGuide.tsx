@@ -10,8 +10,7 @@ import { ChevronDown } from "lucide-react"
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id} className="scroll-mt-20 space-y-4">
-      <h3 id={id} className="flex items-center gap-3 text-xl font-semibold tracking-tight">
-
+      <h3 id={id} className="text-balance text-xl font-semibold tracking-tight">
         {title}
       </h3>
       {children}
@@ -20,12 +19,12 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 function Prose({ children }: { children: ReactNode }) {
-  return <p className="max-w-prose text-pretty text-muted-foreground">{children}</p>
+  return <p className="payload-prose text-pretty text-muted-foreground">{children}</p>
 }
 
 function DefinitionRows({ items }: { items: [string, string][] }) {
   return (
-    <dl className="max-w-prose divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-card/40">
+    <dl className="payload-defs divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-card/40">
       {items.map(([term, def]) => (
         <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-4">
           <dt className="font-mono text-xs font-medium text-tree-key">{term}</dt>
@@ -39,7 +38,7 @@ function DefinitionRows({ items }: { items: [string, string][] }) {
 function ScenarioCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <li className="rounded-xl border border-border bg-card/40 p-4">
-      <h4 className="font-medium text-foreground">{title}</h4>
+      <h4 className="text-balance font-medium text-foreground">{title}</h4>
       <p className="mt-1.5 text-pretty text-muted-foreground">{children}</p>
     </li>
   )
@@ -47,7 +46,7 @@ function ScenarioCard({ title, children }: { title: string; children: ReactNode 
 
 function Faq({ items }: { items: [string, string][] }) {
   return (
-    <div className="max-w-prose space-y-2">
+    <div className="payload-faq space-y-2">
       {items.map(([q, a]) => (
         <details
           key={q}
@@ -60,7 +59,7 @@ function Faq({ items }: { items: [string, string][] }) {
               className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
             />
           </summary>
-          <p className="px-4 pb-4 text-pretty text-muted-foreground">{a}</p>
+          <p className="payload-prose px-4 pb-4 text-pretty text-muted-foreground">{a}</p>
         </details>
       ))}
     </div>
@@ -137,7 +136,7 @@ export function PayloadGuide() {
         ]} />
       </Section>
       <Section id="debugging" title="Common diagnostics">
-        <ul className="max-w-prose space-y-3">
+        <ul className="payload-scenarios grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <ScenarioCard title="Origin mismatch">Check the domain, scheme and port. localhost and production are different origins.</ScenarioCard>
           <ScenarioCard title="RP ID hash mismatch">Compare rpIdHash with SHA-256 of the configured RP ID, without a scheme or port.</ScenarioCard>
           <ScenarioCard title="Counter regression">Check the previous value, the server policy and whether the credential is shared across devices.</ScenarioCard>

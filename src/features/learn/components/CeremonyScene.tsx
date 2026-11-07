@@ -252,7 +252,7 @@ export function CeremonyScene({ T, mode, step, ceremony }: Props & { ceremony: C
 
     return (
         <svg
-            viewBox="0 0 800 415"
+            viewBox="30 0 740 415"
             className={`scene isometric-scene ${isPinned ? 'iso-pinned' : ''}`}
             role="img"
             aria-label={`${T.nodeRp}, ${T.nodeClient}, ${T[ceremony].auth}. ${step.t}`}
